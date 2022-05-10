@@ -1,17 +1,23 @@
-/**
- * @file main.c
- * @author Blake Rowden (b.rowden@uqconnect.edu.au) - s4427634
- * @brief USB BLE Base Dongle
- * @version 1
- * @date 2022-05-10
- *
- * @copyright Copyright (c) 2022
- *
- */
+/*******************************************************************************
+ Module Name:
 
+ Made for CSSE 4011 Semester 1 2022
+
+ First written on 10/05/2022 by Blake Rowden s4427634
+
+ Module Description:
+*******************************************************************************/
+
+/* Includes *******************************************************************/
 #include "main.h"
 
+#include "stdint.h"
+
+/* Defines ********************************************************************/
 LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+
+/* Function Prototypes ********************************************************/
+int enable_terminal(void);
 
 /**
  * @brief Main entry point
@@ -26,7 +32,7 @@ void main(void) { enable_terminal(); }
  */
 int enable_terminal(void) {
     /* Enable the USB Driver */
-    if (usb_enable(NULL)) return;
+    if (usb_enable(NULL)) return -1;
 
     /* Setup DTR - 'Data Terminal Ready' */
     const struct device *console_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
