@@ -9,10 +9,12 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(BASE_NODE)
 
 #Add Include Directories
-include_directories(headers/
-                    library/headers)
+include_directories(inc/
+                    ../lib/inc)
 
 #Add Target Sources
-target_sources(app PRIVATE source/main.c)
+target_sources(app PRIVATE  src/main.c
+                            src/ble_base.c
+                            ../lib/src/led_driver.c)
 
 zephyr_library_include_directories(${ZEPHYR_BASE}/samples/bluetooth)

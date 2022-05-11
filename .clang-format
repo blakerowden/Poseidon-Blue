@@ -3,6 +3,6 @@
 BasedOnStyle: Google
 IndentWidth: 4
 ColumnLimit: 80
-AlignConsecutiveMacros: 'true'
-AlignConsecutiveBitFields: 'true'
+AlignConsecutiveMacros: true
+AlignConsecutiveBitFields: true
 AlignEscapedNewlines: Left
