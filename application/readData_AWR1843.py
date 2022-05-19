@@ -3,9 +3,13 @@ import time
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
+import os
+
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, "AWR1843config.cfg")
 
 # Change the configuration file name
-configFileName = "AWR1843config.cfg"
+configFileName = filename
 
 CLIport = {}
 Dataport = {}
@@ -313,14 +317,16 @@ configParameters = parseConfigFile(configFileName)
 app = QtGui.QApplication([])
 
 # Set the plot
-pg.setConfigOption("background", "w")
-win = pg.GraphicsLayoutWidget(title="2D scatter plot")
+pg.setConfigOption("background", "darkblue")
+win = pg.GraphicsLayoutWidget(title="Posideon Blue People Tracking")
 p = win.addPlot()
 p.setXRange(-5, 5)
 p.setYRange(0, 15)
-p.setLabel("left", text="Y position (m)")
-p.setLabel("bottom", text="X position (m)")
-s = p.plot([], [], pen=None, symbol="o")
+p.setLabel("left", text="Y position (m)", color="#FFF")
+p.setLabel("bottom", text="X position (m)", color="#FFF")
+s = p.plot(
+    [], [], pen=None, symbolBrush=(200, 0, 0), symbolSize=5, symbol="o", color="w"
+)
 win.show()
 
 # Main loop
