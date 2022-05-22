@@ -4,6 +4,7 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 import os
+from Grouper import scanner
 
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, "AWR1843config.cfg")
@@ -299,7 +300,10 @@ def update():
         x = -detObj["x"]
         y = detObj["y"]
 
-        s.setData(x, y)
+        #Pass Machine Learning DBSCAN from Grouper.py:
+        scatter = scanner(win,x,y)
+        p.clear()
+        p.addItem(scatter)
         QtGui.QApplication.processEvents()
 
     return dataOk
@@ -327,6 +331,7 @@ p.setLabel("bottom", text="X position (m)", color="#FFF")
 s = p.plot(
     [], [], pen=None, symbolBrush=(200, 0, 0), symbolSize=5, symbol="o", color="w"
 )
+
 win.show()
 
 # Main loop
@@ -343,7 +348,7 @@ while True:
             frameData[currentIndex] = detObj
             currentIndex += 1
 
-        time.sleep(0.05)  # Sampling frequency of 30 Hz
+        time.sleep(0.1)  # Sampling frequency of 30 Hz
 
     # Stop the program and close everything if Ctrl + c is pressed
     except KeyboardInterrupt:
