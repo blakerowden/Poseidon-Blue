@@ -5,6 +5,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 import os
 from Grouper import scanner
+from velocity import *
 
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, "AWR1843config.cfg")
@@ -16,6 +17,10 @@ CLIport = {}
 Dataport = {}
 byteBuffer = np.zeros(2**15, dtype="uint8")
 byteBufferLength = 0
+
+centreX = []
+centreY = []
+timeStamps = []
 
 
 # ------------------------------------------------------------------
@@ -29,8 +34,8 @@ def serialConfig(configFileName):
     # Open the serial ports for the configuration and the data ports
 
     # Raspberry pi
-    CLIport = serial.Serial("/dev/ttyACM0", 115200)
-    Dataport = serial.Serial("/dev/ttyACM1", 921600)
+    CLIport = serial.Serial("COM7", 115200)
+    Dataport = serial.Serial("COM8", 921600)
 
     # Windows
     # CLIport = serial.Serial('COM8', 115200)
@@ -302,6 +307,11 @@ def update():
 
         #Pass Machine Learning DBSCAN from Grouper.py:
         scatter = scanner(win,x,y)
+        centreX1, centerY1, timeStamp = center_point(x,y)
+        centreX.append(centreX1)
+        centreY.append(centerY1)
+        timeStamps.append(timeStamp)
+        
         p.clear()
         p.addItem(scatter)
         QtGui.QApplication.processEvents()

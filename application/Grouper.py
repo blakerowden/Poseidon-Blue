@@ -49,4 +49,4 @@ def scanner(s,x,y):
     
     scatter.addPoints(spots)
 
-    return scatter
+    return scatter, x, y
