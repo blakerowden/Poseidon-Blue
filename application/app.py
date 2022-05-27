@@ -4,7 +4,7 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 import os
-from Grouper import *
+from grouper import *
 from velocity import *
 
 dirname = os.path.dirname(__file__)
@@ -18,6 +18,10 @@ Dataport = {}
 byteBuffer = np.zeros(2**15, dtype="uint8")
 byteBufferLength = 0
 
+configParameters = (
+    {}
+)  # Initialize an empty dictionary to store the configuration parameters
+
 centreX = []
 centreY = []
 velList = []
@@ -25,18 +29,17 @@ angList = []
 timeStamps = []
 iteration = 0
 
-
-# ------------------------------------------------------------------
-
 # Function to configure the serial ports and send the data from
 # the configuration file to the radar
-def serialConfig(configFileName):
+
+
+def serialConfig(configFileName: str) -> tuple:
 
     global CLIport
     global Dataport
     # Open the serial ports for the configuration and the data ports
 
-    # Raspberry pi
+    # Linux
     CLIport = serial.Serial("/dev/ttyACM0", 115200)
     Dataport = serial.Serial("/dev/ttyACM1", 921600)
 
@@ -57,10 +60,7 @@ def serialConfig(configFileName):
 # ------------------------------------------------------------------
 
 # Function to parse the data inside the configuration file
-def parseConfigFile(configFileName):
-    configParameters = (
-        {}
-    )  # Initialize an empty dictionary to store the configuration parameters
+def parseConfigFile(configFileName: str) -> dict:
 
     # Read the configuration file and send it to the board
     config = [line.rstrip("\r\n") for line in open(configFileName)]
@@ -69,7 +69,7 @@ def parseConfigFile(configFileName):
         # Split the line
         splitWords = i.split(" ")
 
-        # Hard code the number of antennas, change if other configuration is used
+        # Hard code the number of antennas
         numRxAnt = 4
         numTxAnt = 3
 
@@ -100,9 +100,9 @@ def parseConfigFile(configFileName):
     numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops
     configParameters["numDopplerBins"] = numChirpsPerFrame / numTxAnt
     configParameters["numRangeBins"] = numAdcSamplesRoundTo2
-    configParameters["rangeResolutionMeters"] = (3e8 * digOutSampleRate * 1e3) / (
-        2 * freqSlopeConst * 1e12 * numAdcSamples
-    )
+    configParameters["rangeResolutionMeters"] = (
+        3e8 * digOutSampleRate * 1e3
+    ) / (2 * freqSlopeConst * 1e12 * numAdcSamples)
     configParameters["rangeIdxToMeters"] = (3e8 * digOutSampleRate * 1e3) / (
         2 * freqSlopeConst * 1e12 * configParameters["numRangeBins"]
     )
@@ -128,7 +128,7 @@ def parseConfigFile(configFileName):
 # ------------------------------------------------------------------
 
 # Funtion to read and parse the incoming data
-def readAndParseData18xx(Dataport, configParameters):
+def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
     global byteBuffer, byteBufferLength
 
     # Constants
@@ -180,7 +180,8 @@ def readAndParseData18xx(Dataport, configParameters):
                     startIdx[0] : byteBufferLength
                 ]
                 byteBuffer[byteBufferLength - startIdx[0] :] = np.zeros(
-                    len(byteBuffer[byteBufferLength - startIdx[0] :]), dtype="uint8"
+                    len(byteBuffer[byteBufferLength - startIdx[0] :]),
+                    dtype="uint8",
                 )
                 byteBufferLength = byteBufferLength - startIdx[0]
 
@@ -250,11 +251,17 @@ def readAndParseData18xx(Dataport, configParameters):
                 for objectNum in range(numDetectedObj):
 
                     # Read the data for each object
-                    x[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                    x[objectNum] = byteBuffer[idX : idX + 4].view(
+                        dtype=np.float32
+                    )
                     idX += 4
-                    y[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                    y[objectNum] = byteBuffer[idX : idX + 4].view(
+                        dtype=np.float32
+                    )
                     idX += 4
-                    z[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                    z[objectNum] = byteBuffer[idX : idX + 4].view(
+                        dtype=np.float32
+                    )
                     idX += 4
                     velocity[objectNum] = byteBuffer[idX : idX + 4].view(
                         dtype=np.float32
@@ -293,7 +300,9 @@ def readAndParseData18xx(Dataport, configParameters):
 # ------------------------------------------------------------------
 
 # Funtion to update the data and display in the plot
-def update():
+def update(
+    window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem
+) -> int:
 
     dataOk = 0
     global detObj
@@ -309,105 +318,133 @@ def update():
     ellipseList = []
 
     # Read and parse the received data
-    dataOk, frameNumber, detObj = readAndParseData18xx(Dataport, configParameters)
+    dataOk, frameNumber, detObj = readAndParseData18xx(
+        Dataport, configParameters
+    )
 
     if dataOk and len(detObj["x"]) > 0:
         # print(detObj)
         x = -detObj["x"]
         y = detObj["y"]
 
-        #Pass Machine Learning DBSCAN from Grouper.py:
-        scatter, ellipseList, groupCentreX, groupCentreY, num_clusters = scanner(win,x,y)
+        # Pass Machine Learning DBSCAN from Grouper.py:
+        (
+            scatter,
+            ellipseList,
+            groupCentreX,
+            groupCentreY,
+            num_clusters,
+        ) = scanner(window, x, y)
         for i in range(len(velSum)):
             velSum[i] = 0
             angSum[i] = 0
         if num_clusters > 0:
-            iteration+=1
-
-            
+            iteration += 1
 
             centreX.append(groupCentreX)
             centreY.append(groupCentreY)
 
-            if iteration%2==0 and len(centreX) > 1:
-                #print(centreX, centreY)
-                
-                vel, ang = velocity_calc(centreX,centreY)
+            if iteration % 2 == 0 and len(centreX) > 1:
+                # print(centreX, centreY)
+
+                vel, ang = velocity_calc(centreX, centreY)
                 velList.append(vel)
                 angList.append(ang)
                 centreX.clear()
                 centreY.clear()
 
-            
-            if iteration%10==0:
+            if iteration % 10 == 0:
                 for i in range(len(velList)):
                     for j in range(len(velList[i])):
                         velSum[j] += velList[i][j]
                         angSum[j] += angList[i][j]
                 for i in range(num_clusters):
-                    print("Average velocity of cluster " + str(i + 1) + ' is: ' + str(velSum[i]/5))
-                    print("Average angle of cluster " + str(i + 1) + ' is: ' + str(angSum[i]/5) + '\n')
+                    print(
+                        "Average velocity of cluster "
+                        + str(i + 1)
+                        + " is: "
+                        + str(velSum[i] / 5)
+                    )
+                    print(
+                        "Average angle of cluster "
+                        + str(i + 1)
+                        + " is: "
+                        + str(angSum[i] / 5)
+                        + "\n"
+                    )
                 velList.clear()
                 angList.clear()
-            
-            p.clear()
-            p.addItem(scatter)
+
+            plot.clear()
+            plot.addItem(scatter)
             for ellipse in ellipseList:
-                p.addItem(ellipse)
-        
+                plot.addItem(ellipse)
 
         QtGui.QApplication.processEvents()
-
-    
 
     return dataOk
 
 
 # -------------------------    MAIN   -----------------------------------------
 
-# Configurate the serial port
-CLIport, Dataport = serialConfig(configFileName)
 
-# Get the configuration parameters from the configuration file
-configParameters = parseConfigFile(configFileName)
+def main() -> None:
+    # Configurate the serial port
+    CLIport, Dataport = serialConfig(configFileName)
 
-# START QtAPPfor the plot
-app = QtGui.QApplication([])
+    # Get the configuration parameters from the configuration file
+    parseConfigFile(configFileName)
 
-# Set the plot
-pg.setConfigOption("background", "darkblue")
-win = pg.GraphicsLayoutWidget(title="Posideon Blue People Tracking")
-p = win.addPlot()
-p.setXRange(-5, 5)
-p.setYRange(0, 15)
-p.setLabel("left", text="Y position (m)", color="#FFF")
-p.setLabel("bottom", text="X position (m)", color="#FFF")
-s = p.plot(
-    [], [], pen=None, symbolBrush=(200, 0, 0), symbolSize=5, symbol="o", color="w"
-)
+    # START QtAPPfor the plot
+    QtGui.QApplication([])
 
-win.show()
+    # Set the plot
+    pg.setConfigOption("background", "lightgrey")
+    window = pg.GraphicsLayoutWidget(title="Posideon Blue People Tracking")
+    plot = window.addPlot()
+    plot.setXRange(-5, 5)
+    plot.setYRange(0, 15)
+    plot.setLabel("left", text="Y position", units="m")
+    plot.setLabel("bottom", text="X position", units="m")
+    plot.plot(
+        [],
+        [],
+        pen=None,
+        symbolBrush=(200, 0, 0),
+        symbolSize=5,
+        symbol="o",
+        color="w",
+    )
 
-# Main loop
-detObj = {}
-frameData = {}
-currentIndex = 0
-while True:
-    try:
-        # Update the data and check if the data is okay
-        dataOk = update()
+    window.show()
 
-        if dataOk:
-            # Store the current frame into frameData
-            frameData[currentIndex] = detObj
-            currentIndex += 1
+    # Main loop
+    detObj = {}
+    frameData = {}
+    currentIndex = 0
+    while True:
+        try:
+            # Update the data and check if the data is okay
+            dataOk = update(window, plot)
 
-        time.sleep(0.1)  # Sampling frequency of 30 Hz
+            if dataOk:
+                # Store the current frame into frameData
+                frameData[currentIndex] = detObj
+                currentIndex += 1
 
-    # Stop the program and close everything if Ctrl + c is pressed
-    except KeyboardInterrupt:
-        CLIport.write(("sensorStop\n").encode())
-        CLIport.close()
-        Dataport.close()
-        win.close()
-        break
+            time.sleep(0.1)  # Sampling frequency of 30 Hz
+
+        # Stop the program and close everything if Ctrl + c is pressed
+        except KeyboardInterrupt:
+            CLIport.write(("sensorStop\n").encode())
+            CLIport.close()
+            Dataport.close()
+            window.close()
+            break
+
+
+if __name__ == "__main__":
+    """
+    Only run the main function if this file is run directly.
+    """
+    main()
