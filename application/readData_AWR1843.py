@@ -4,7 +4,7 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 import os
-from Grouper import scanner
+from Grouper import *
 from velocity import *
 
 dirname = os.path.dirname(__file__)
@@ -20,7 +20,10 @@ byteBufferLength = 0
 
 centreX = []
 centreY = []
+velList = []
+angList = []
 timeStamps = []
+iteration = 0
 
 
 # ------------------------------------------------------------------
@@ -34,8 +37,8 @@ def serialConfig(configFileName):
     # Open the serial ports for the configuration and the data ports
 
     # Raspberry pi
-    CLIport = serial.Serial("COM7", 115200)
-    Dataport = serial.Serial("COM8", 921600)
+    CLIport = serial.Serial("/dev/ttyACM0", 115200)
+    Dataport = serial.Serial("/dev/ttyACM1", 921600)
 
     # Windows
     # CLIport = serial.Serial('COM8', 115200)
@@ -294,8 +297,16 @@ def update():
 
     dataOk = 0
     global detObj
+    global iteration
+    global centreX
+    global centreY
+    global velList
+    global angList
+    velSum = [0 for i in range(50)]
+    angSum = [0 for i in range(50)]
     x = []
     y = []
+    ellipseList = []
 
     # Read and parse the received data
     dataOk, frameNumber, detObj = readAndParseData18xx(Dataport, configParameters)
@@ -306,15 +317,48 @@ def update():
         y = detObj["y"]
 
         #Pass Machine Learning DBSCAN from Grouper.py:
-        scatter = scanner(win,x,y)
-        centreX1, centerY1, timeStamp = center_point(x,y)
-        centreX.append(centreX1)
-        centreY.append(centerY1)
-        timeStamps.append(timeStamp)
+        scatter, ellipseList, groupCentreX, groupCentreY, num_clusters = scanner(win,x,y)
+        for i in range(len(velSum)):
+            velSum[i] = 0
+            angSum[i] = 0
+        if num_clusters > 0:
+            iteration+=1
+
+            
+
+            centreX.append(groupCentreX)
+            centreY.append(groupCentreY)
+
+            if iteration%2==0 and len(centreX) > 1:
+                #print(centreX, centreY)
+                
+                vel, ang = velocity_calc(centreX,centreY)
+                velList.append(vel)
+                angList.append(ang)
+                centreX.clear()
+                centreY.clear()
+
+            
+            if iteration%10==0:
+                for i in range(len(velList)):
+                    for j in range(len(velList[i])):
+                        velSum[j] += velList[i][j]
+                        angSum[j] += angList[i][j]
+                for i in range(num_clusters):
+                    print("Average velocity of cluster " + str(i + 1) + ' is: ' + str(velSum[i]/5))
+                    print("Average angle of cluster " + str(i + 1) + ' is: ' + str(angSum[i]/5) + '\n')
+                velList.clear()
+                angList.clear()
+            
+            p.clear()
+            p.addItem(scatter)
+            for ellipse in ellipseList:
+                p.addItem(ellipse)
         
-        p.clear()
-        p.addItem(scatter)
+
         QtGui.QApplication.processEvents()
+
+    
 
     return dataOk
 
