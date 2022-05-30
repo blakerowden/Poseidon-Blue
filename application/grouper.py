@@ -24,7 +24,7 @@ def scanner(s, x, y):
     else:
         print("Uneven number of x an y")
 
-    db = DBSCAN(eps=0.8, min_samples=10).fit(points)
+    db = DBSCAN(eps=1, min_samples=int(len(x)/5)).fit(points)
 
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
@@ -34,14 +34,13 @@ def scanner(s, x, y):
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     n_noise_ = list(labels).count(-1)
 
-    # print("Estimated number of clusters: %d" % n_clusters_)
-    # print("Estimated number of noise points: %d" % n_noise_)
+    print("Estimated number of clusters: %d" % n_clusters_)
+    print("Estimated number of noise points: %d" % n_noise_)
 
     lastLabel = 0
     colorInd = 0
 
     scatter = pg.ScatterPlotItem(pxMode=False)
-    spots = []
     ellipseList = []
 
     for i in range(len(data)):
@@ -53,7 +52,7 @@ def scanner(s, x, y):
                 groupCentreX.append(centreX)
                 groupCentreY.append(centreY)
 
-                p_ellipse = pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.05, 0.05)
+                p_ellipse = pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.02, 0.02)
 
                 ellipseList.append(p_ellipse)
                 groupX.clear()
@@ -62,25 +61,14 @@ def scanner(s, x, y):
         groupX.append(x[i])
         groupY.append(y[i])
 
-        spot_dic = {
-            "pos": (x[i], y[i]),
-            "size": 0.2,
-            "pen": {"color": "w", "width": 0.1},
-            "brush": pg.intColor(colorInd * 2, 100),
-        }
-
-        spots.append(spot_dic)
-
     if lastLabel == 0:
         centreX, centreY = centre_point(groupX, groupY)
-        p_ellipse = pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.05, 0.05)
+        p_ellipse = pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.02, 0.02)
         ellipseList.append(p_ellipse)
         groupCentreX.append(centreX)
         groupCentreY.append(centreY)
 
-    scatter.addPoints(spots)
-
-    return scatter, ellipseList, groupCentreX, groupCentreY, n_clusters_
+    return ellipseList, groupCentreX, groupCentreY, n_clusters_
 
 
 def centre_point(xList, yList):

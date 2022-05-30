@@ -317,59 +317,57 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
         x = -detObj["x"]
         y = detObj["y"]
 
-        plot.plot(x, y, pen=None, symbol="o", symbolPen=None, symbolBrush=(255, 0, 0))
+        plot.plot(x, y, pen=None, symbol="x", symbolPen=None, symbolBrush=(60, 0, 0))
 
-        # Pass Machine Learning DBSCAN from Grouper.py:
-        # (
-        #    scatter,
-        #    ellipseList,
-        #    groupCentreX,
-        #    groupCentreY,
-        #    num_clusters,
-        # ) = scanner(window, x, y)
-        # for i in range(len(velSum)):
-        #    velSum[i] = 0
-        #    angSum[i] = 0
-        # if num_clusters > 0:
-        #    iteration += 1
+        #Pass Machine Learning DBSCAN from Grouper.py:
+        (
+           ellipseList,
+           groupCentreX,
+           groupCentreY,
+           num_clusters,
+        ) = scanner(window, x, y)
+        #for i in range(len(velSum)):
+        #   velSum[i] = 0
+        #   angSum[i] = 0
+        #if num_clusters > 0:
+        #   iteration += 1
+        #   
+        #centreX.append(groupCentreX)
+        #centreY.append(groupCentreY)
+    
+        #if iteration % 2 == 0 and len(centreX) > 1:
+        #   # print(centreX, centreY)
+    #
+        #   vel, ang = velocity_calc(centreX, centreY)
+        #   velList.append(vel)
+        #   angList.append(ang)
+        #   centreX.clear()
+        #   centreY.clear()
+    #
+        #if iteration % 10 == 0:
+        #   for i in range(len(velList)):
+        #       for j in range(len(velList[i])):
+        #           velSum[j] += velList[i][j]
+        #           angSum[j] += angList[i][j]
+        #   for i in range(num_clusters):
+        #       print(
+        #           "Average velocity of cluster "
+        #           + str(i + 1)
+        #           + " is: "
+        #           + str(velSum[i] / 5)
+        #       )
+        #       print(
+        #           "Average angle of cluster "
+        #           + str(i + 1)
+        #           + " is: "
+        #           + str(angSum[i] / 5)
+        #           + "\n"
+        #       )
+        #   velList.clear()
+        #   angList.clear()
 
-        # centreX.append(groupCentreX)
-        # centreY.append(groupCentreY)
-        #
-        # if iteration % 2 == 0 and len(centreX) > 1:
-        #    # print(centreX, centreY)
-        #
-        #    vel, ang = velocity_calc(centreX, centreY)
-        #    velList.append(vel)
-        #    angList.append(ang)
-        #    centreX.clear()
-        #    centreY.clear()
-        #
-        # if iteration % 10 == 0:
-        #    for i in range(len(velList)):
-        #        for j in range(len(velList[i])):
-        #            velSum[j] += velList[i][j]
-        #            angSum[j] += angList[i][j]
-        #    for i in range(num_clusters):
-        #        print(
-        #            "Average velocity of cluster "
-        #            + str(i + 1)
-        #            + " is: "
-        #            + str(velSum[i] / 5)
-        #        )
-        #        print(
-        #            "Average angle of cluster "
-        #            + str(i + 1)
-        #            + " is: "
-        #            + str(angSum[i] / 5)
-        #            + "\n"
-        #        )
-        #    velList.clear()
-        #    angList.clear()
-
-        # plot.addItem(scatter)
-        # for ellipse in ellipseList:
-        #    plot.addItem(ellipse)
+        for ellipse in ellipseList:
+            plot.addItem(ellipse)
 
         QtGui.QApplication.processEvents()
 
@@ -423,7 +421,7 @@ def main() -> None:
                 frameData[currentIndex] = detObj
                 currentIndex += 1
 
-            time.sleep(0.1)  # Sampling frequency of 30 Hz
+            time.sleep(1/7)  # Sampling frequency of 30 Hz
             plot.clear()
 
         # Stop the program and close everything if Ctrl + c is pressed
