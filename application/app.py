@@ -100,9 +100,9 @@ def parseConfigFile(configFileName: str) -> dict:
     numChirpsPerFrame = (chirpEndIdx - chirpStartIdx + 1) * numLoops
     configParameters["numDopplerBins"] = numChirpsPerFrame / numTxAnt
     configParameters["numRangeBins"] = numAdcSamplesRoundTo2
-    configParameters["rangeResolutionMeters"] = (
-        3e8 * digOutSampleRate * 1e3
-    ) / (2 * freqSlopeConst * 1e12 * numAdcSamples)
+    configParameters["rangeResolutionMeters"] = (3e8 * digOutSampleRate * 1e3) / (
+        2 * freqSlopeConst * 1e12 * numAdcSamples
+    )
     configParameters["rangeIdxToMeters"] = (3e8 * digOutSampleRate * 1e3) / (
         2 * freqSlopeConst * 1e12 * configParameters["numRangeBins"]
     )
@@ -251,17 +251,11 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
                 for objectNum in range(numDetectedObj):
 
                     # Read the data for each object
-                    x[objectNum] = byteBuffer[idX : idX + 4].view(
-                        dtype=np.float32
-                    )
+                    x[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
                     idX += 4
-                    y[objectNum] = byteBuffer[idX : idX + 4].view(
-                        dtype=np.float32
-                    )
+                    y[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
                     idX += 4
-                    z[objectNum] = byteBuffer[idX : idX + 4].view(
-                        dtype=np.float32
-                    )
+                    z[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
                     idX += 4
                     velocity[objectNum] = byteBuffer[idX : idX + 4].view(
                         dtype=np.float32
@@ -300,9 +294,7 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
 # ------------------------------------------------------------------
 
 # Funtion to update the data and display in the plot
-def update(
-    window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem
-) -> int:
+def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> int:
 
     dataOk = 0
     global detObj
@@ -318,67 +310,66 @@ def update(
     ellipseList = []
 
     # Read and parse the received data
-    dataOk, frameNumber, detObj = readAndParseData18xx(
-        Dataport, configParameters
-    )
+    dataOk, frameNumber, detObj = readAndParseData18xx(Dataport, configParameters)
 
     if dataOk and len(detObj["x"]) > 0:
         # print(detObj)
         x = -detObj["x"]
         y = detObj["y"]
 
+        plot.plot(x, y, pen=None, symbol="o", symbolPen=None, symbolBrush=(255, 0, 0))
+
         # Pass Machine Learning DBSCAN from Grouper.py:
-        (
-            scatter,
-            ellipseList,
-            groupCentreX,
-            groupCentreY,
-            num_clusters,
-        ) = scanner(window, x, y)
-        for i in range(len(velSum)):
-            velSum[i] = 0
-            angSum[i] = 0
-        if num_clusters > 0:
-            iteration += 1
+        # (
+        #    scatter,
+        #    ellipseList,
+        #    groupCentreX,
+        #    groupCentreY,
+        #    num_clusters,
+        # ) = scanner(window, x, y)
+        # for i in range(len(velSum)):
+        #    velSum[i] = 0
+        #    angSum[i] = 0
+        # if num_clusters > 0:
+        #    iteration += 1
 
-            centreX.append(groupCentreX)
-            centreY.append(groupCentreY)
+        # centreX.append(groupCentreX)
+        # centreY.append(groupCentreY)
+        #
+        # if iteration % 2 == 0 and len(centreX) > 1:
+        #    # print(centreX, centreY)
+        #
+        #    vel, ang = velocity_calc(centreX, centreY)
+        #    velList.append(vel)
+        #    angList.append(ang)
+        #    centreX.clear()
+        #    centreY.clear()
+        #
+        # if iteration % 10 == 0:
+        #    for i in range(len(velList)):
+        #        for j in range(len(velList[i])):
+        #            velSum[j] += velList[i][j]
+        #            angSum[j] += angList[i][j]
+        #    for i in range(num_clusters):
+        #        print(
+        #            "Average velocity of cluster "
+        #            + str(i + 1)
+        #            + " is: "
+        #            + str(velSum[i] / 5)
+        #        )
+        #        print(
+        #            "Average angle of cluster "
+        #            + str(i + 1)
+        #            + " is: "
+        #            + str(angSum[i] / 5)
+        #            + "\n"
+        #        )
+        #    velList.clear()
+        #    angList.clear()
 
-            if iteration % 2 == 0 and len(centreX) > 1:
-                # print(centreX, centreY)
-
-                vel, ang = velocity_calc(centreX, centreY)
-                velList.append(vel)
-                angList.append(ang)
-                centreX.clear()
-                centreY.clear()
-
-            if iteration % 10 == 0:
-                for i in range(len(velList)):
-                    for j in range(len(velList[i])):
-                        velSum[j] += velList[i][j]
-                        angSum[j] += angList[i][j]
-                for i in range(num_clusters):
-                    print(
-                        "Average velocity of cluster "
-                        + str(i + 1)
-                        + " is: "
-                        + str(velSum[i] / 5)
-                    )
-                    print(
-                        "Average angle of cluster "
-                        + str(i + 1)
-                        + " is: "
-                        + str(angSum[i] / 5)
-                        + "\n"
-                    )
-                velList.clear()
-                angList.clear()
-
-            plot.clear()
-            plot.addItem(scatter)
-            for ellipse in ellipseList:
-                plot.addItem(ellipse)
+        # plot.addItem(scatter)
+        # for ellipse in ellipseList:
+        #    plot.addItem(ellipse)
 
         QtGui.QApplication.processEvents()
 
@@ -433,6 +424,7 @@ def main() -> None:
                 currentIndex += 1
 
             time.sleep(0.1)  # Sampling frequency of 30 Hz
+            plot.clear()
 
         # Stop the program and close everything if Ctrl + c is pressed
         except KeyboardInterrupt:
