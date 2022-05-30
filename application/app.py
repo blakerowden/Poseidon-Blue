@@ -154,7 +154,7 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
 
     # Check that the buffer is not full, and then add the data to the buffer
     if (byteBufferLength + byteCount) < maxBufferSize:
-        byteBuffer[byteBufferLength : byteBufferLength + byteCount] = byteVec[
+        byteBuffer[byteBufferLength: byteBufferLength + byteCount] = byteVec[
             :byteCount
         ]
         byteBufferLength = byteBufferLength + byteCount
@@ -168,7 +168,7 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
         # Confirm that is the beginning of the magic word and store the index in startIdx
         startIdx = []
         for loc in possibleLocs:
-            check = byteBuffer[loc : loc + 8]
+            check = byteBuffer[loc: loc + 8]
             if np.all(check == magicWord):
                 startIdx.append(loc)
 
@@ -178,10 +178,10 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
             # Remove the data before the first start index
             if startIdx[0] > 0 and startIdx[0] < byteBufferLength:
                 byteBuffer[: byteBufferLength - startIdx[0]] = byteBuffer[
-                    startIdx[0] : byteBufferLength
+                    startIdx[0]: byteBufferLength
                 ]
-                byteBuffer[byteBufferLength - startIdx[0] :] = np.zeros(
-                    len(byteBuffer[byteBufferLength - startIdx[0] :]),
+                byteBuffer[byteBufferLength - startIdx[0]:] = np.zeros(
+                    len(byteBuffer[byteBufferLength - startIdx[0]:]),
                     dtype="uint8",
                 )
                 byteBufferLength = byteBufferLength - startIdx[0]
@@ -194,7 +194,7 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
             word = [1, 2**8, 2**16, 2**24]
 
             # Read the total packet length
-            totalPacketLen = np.matmul(byteBuffer[12 : 12 + 4], word)
+            totalPacketLen = np.matmul(byteBuffer[12: 12 + 4], word)
 
             # Check that all the packet has been read
             if (byteBufferLength >= totalPacketLen) and (byteBufferLength != 0):
@@ -209,23 +209,23 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
         idX = 0
 
         # Read the header
-        magicNumber = byteBuffer[idX : idX + 8]
+        magicNumber = byteBuffer[idX: idX + 8]
         idX += 8
-        version = format(np.matmul(byteBuffer[idX : idX + 4], word), "x")
+        version = format(np.matmul(byteBuffer[idX: idX + 4], word), "x")
         idX += 4
-        totalPacketLen = np.matmul(byteBuffer[idX : idX + 4], word)
+        totalPacketLen = np.matmul(byteBuffer[idX: idX + 4], word)
         idX += 4
-        platform = format(np.matmul(byteBuffer[idX : idX + 4], word), "x")
+        platform = format(np.matmul(byteBuffer[idX: idX + 4], word), "x")
         idX += 4
-        frameNumber = np.matmul(byteBuffer[idX : idX + 4], word)
+        frameNumber = np.matmul(byteBuffer[idX: idX + 4], word)
         idX += 4
-        timeCpuCycles = np.matmul(byteBuffer[idX : idX + 4], word)
+        timeCpuCycles = np.matmul(byteBuffer[idX: idX + 4], word)
         idX += 4
-        numDetectedObj = np.matmul(byteBuffer[idX : idX + 4], word)
+        numDetectedObj = np.matmul(byteBuffer[idX: idX + 4], word)
         idX += 4
-        numTLVs = np.matmul(byteBuffer[idX : idX + 4], word)
+        numTLVs = np.matmul(byteBuffer[idX: idX + 4], word)
         idX += 4
-        subFrameNumber = np.matmul(byteBuffer[idX : idX + 4], word)
+        subFrameNumber = np.matmul(byteBuffer[idX: idX + 4], word)
         idX += 4
 
         # Read the TLV messages
@@ -235,9 +235,9 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
             word = [1, 2**8, 2**16, 2**24]
 
             # Check the header of the TLV message
-            tlv_type = np.matmul(byteBuffer[idX : idX + 4], word)
+            tlv_type = np.matmul(byteBuffer[idX: idX + 4], word)
             idX += 4
-            tlv_length = np.matmul(byteBuffer[idX : idX + 4], word)
+            tlv_length = np.matmul(byteBuffer[idX: idX + 4], word)
             idX += 4
 
             # Read the data depending on the TLV message
@@ -252,13 +252,16 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
                 for objectNum in range(numDetectedObj):
 
                     # Read the data for each object
-                    x[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                    x[objectNum] = byteBuffer[idX: idX +
+                        4].view(dtype=np.float32)
                     idX += 4
-                    y[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                    y[objectNum] = byteBuffer[idX: idX +
+                        4].view(dtype=np.float32)
                     idX += 4
-                    z[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                    z[objectNum] = byteBuffer[idX: idX +
+                        4].view(dtype=np.float32)
                     idX += 4
-                    velocity[objectNum] = byteBuffer[idX : idX + 4].view(
+                    velocity[objectNum] = byteBuffer[idX: idX + 4].view(
                         dtype=np.float32
                     )
                     idX += 4
@@ -280,8 +283,8 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
             byteBuffer[: byteBufferLength - shiftSize] = byteBuffer[
                 shiftSize:byteBufferLength
             ]
-            byteBuffer[byteBufferLength - shiftSize :] = np.zeros(
-                len(byteBuffer[byteBufferLength - shiftSize :]), dtype="uint8"
+            byteBuffer[byteBufferLength - shiftSize:] = np.zeros(
+                len(byteBuffer[byteBufferLength - shiftSize:]), dtype="uint8"
             )
             byteBufferLength = byteBufferLength - shiftSize
 
@@ -312,22 +315,23 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
     ellipseList = []
 
     # Read and parse the received data
-    dataOk, frameNumber, detObj = readAndParseData18xx(Dataport, configParameters)
+    dataOk, frameNumber, detObj = readAndParseData18xx(
+        Dataport, configParameters)
 
     if dataOk and len(detObj["x"]) > 0:
         # print(detObj)
         x = -detObj["x"]
         y = detObj["y"]
 
-        plot.plot(x, y, pen=None, symbol="x", symbolPen=None, symbolBrush=(60, 0, 0))
+        
 
-        #Pass Machine Learning DBSCAN from Grouper.py:
+
+        # Pass Machine Learning DBSCAN from Grouper.py:
         (
-           ellipseList,
            groupCentreX,
            groupCentreY,
            num_clusters,
-        ) = scanner(window, x, y, last_num)
+        ) = scanner(window, x, y, last_num, plot, iteration)
         for i in range(len(velSum)):
            velSum[i] = 0
            angSum[i] = 0
@@ -335,42 +339,48 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
            iteration += 1
 
         last_num = num_clusters
-           
-        centreX.append(groupCentreX)
-        centreY.append(groupCentreY)
 
+        plot.plot(x,y, pen=None, symbol="x",
+            symbolPen=None, symbolBrush=(60, 0, 0))
+
+        #centreX.append(groupCentreX)
+        #centreY.append(groupCentreY)
+#
         if iteration % 2 == 0 and len(centreX) > 1:
-           # print(centreX, centreY)
-    
-           vel, ang = [0],[0] #velocity_calc(centreX, centreY)
-           velList.append(vel)
-           angList.append(ang)
-           centreX.clear()
-           centreY.clear()
-    
-        if iteration % 7 == 0:
-           for i in range(len(velList)):
-               for j in range(len(velList[i])):
-                   velSum[j] += velList[i][j]
-                   angSum[j] += angList[i][j]
-           for i in range(num_clusters):
-               print(
-                   "Average velocity of cluster "
-                   + str(i + 1)
-                   + " is: "
-                   + str(velSum[i] / 5)
-               )
-               print(
-                   "Average angle of cluster "
-                   + str(i + 1)
-                   + " is: "
-                   + str(angSum[i] / 5)
-                   + "\n"
-               )
-           velList.clear()
-           angList.clear()
-        for ellipse in ellipseList:
-            plot.addItem(ellipse)
+            pass
+        #   # print(centreX, centreY)
+#
+        #   vel, ang = [0], [0]  # velocity_calc(centreX, centreY)
+        #   velList.append(vel)
+        #   angList.append(ang)
+        #   centreX.clear()
+        #   centreY.clear()
+#
+        #if iteration % 30 == 0:
+        #    for i in range(len(velList)):
+        #        for j in range(len(velList[i])):
+        #            velSum[j] += velList[i][j]
+        #            angSum[j] += angList[i][j]
+        #    for i in range(num_clusters):
+        #            
+        #            print(
+        #            "Average velocity of cluster "
+        #            + str(i + 1)
+        #            + " is: "
+        #            + str(velSum[i] / 5)
+        #            )
+        #            print(
+        #            "Average angle of cluster "
+        #            + str(i + 1)
+        #            + " is: "
+        #            + str(angSum[i] / 5)
+        #            + "\n"
+        #            )
+        #    
+        #    
+        #    velList.clear()
+        #    angList.clear()
+            
 
         QtGui.QApplication.processEvents()
 
@@ -424,8 +434,10 @@ def main() -> None:
                 frameData[currentIndex] = detObj
                 currentIndex += 1
 
-            time.sleep(1/30)  # Sampling frequency of 30 Hz
-            plot.clear()
+            #time.sleep(1/30)  # Sampling frequency of 30 Hz
+
+            
+            
 
         # Stop the program and close everything if Ctrl + c is pressed
         except KeyboardInterrupt:

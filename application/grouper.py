@@ -7,7 +7,7 @@ from pyqtgraph.Qt import QtGui
 labels_true = 1
 
 
-def scanner(s, x, y, last_clusters):
+def scanner(s, x, y, last_clusters, plot, iteration):
     radius = 0
     centre = [0, 0]
     data = []
@@ -15,17 +15,23 @@ def scanner(s, x, y, last_clusters):
     groupY = []
     groupCentreX = []
     groupCentreY = []
+    plot.clear()
+
+    
 
     if len(x) == len(y):
         for i in range(len(x)):
             data.append([x[i], y[i]])
-
+    
+    for xpoint, ypoint in data:
         points = np.array(data)
     else:
         print("Uneven number of x an y")
+    if last_clusters == 0:
+        last_clusters = 1
+    db = DBSCAN(eps=0.6, min_samples=int(len(x)/(3 * last_clusters))).fit(points)
 
-    db = DBSCAN(eps=1, min_samples=int(len(x)/(last_clusters + 1))).fit(points)
-
+   
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
     labels = db.labels_
@@ -44,31 +50,39 @@ def scanner(s, x, y, last_clusters):
     ellipseList = []
 
     for i in range(len(data)):
-        if labels[i] != lastLabel:
-            colorInd += 1
-            lastLabel = labels[i]
-            if i > 0:
-                centreX, centreY = centre_point(groupX, groupY)
-                groupCentreX.append(centreX)
-                groupCentreY.append(centreY)
-
-                p_ellipse = pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.02, 0.02)
-
-                ellipseList.append(p_ellipse)
-                groupX.clear()
-                groupY.clear()
-
         groupX.append(x[i])
         groupY.append(y[i])
 
+        if labels[i] != lastLabel:
+            colorInd += 1
+            lastLabel = labels[i]
+            centreX, centreY = centre_point(groupX, groupY)
+            groupCentreX.append(centreX)
+            groupCentreY.append(centreY)
+            plot.addItem(pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.1, 0.1))
+            groupX.clear()
+            groupY.clear()
+
+        
+
+        
+
     if lastLabel == 0:
+        groupX.append(x[i])
+        groupY.append(y[i])
         centreX, centreY = centre_point(groupX, groupY)
-        p_ellipse = pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.02, 0.02)
-        ellipseList.append(p_ellipse)
+        plot.addItem(pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.1, 0.1))
         groupCentreX.append(centreX)
         groupCentreY.append(centreY)
+        
 
-    return ellipseList, groupCentreX, groupCentreY, n_clusters_
+    for ellipse in ellipseList:
+        plot.addItem(ellipse)
+
+    for item in ellipseList:
+        print(item)
+    
+    return groupCentreX, groupCentreY, n_clusters_
 
 
 def centre_point(xList, yList):
