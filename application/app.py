@@ -348,7 +348,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
            centreX.clear()
            centreY.clear()
     
-        if iteration % 10 == 0:
+        if iteration % 7 == 0:
            for i in range(len(velList)):
                for j in range(len(velList[i])):
                    velSum[j] += velList[i][j]
@@ -424,7 +424,7 @@ def main() -> None:
                 frameData[currentIndex] = detObj
                 currentIndex += 1
 
-            time.sleep(0.05)  # Sampling frequency of 30 Hz
+            time.sleep(1/30)  # Sampling frequency of 30 Hz
             plot.clear()
 
         # Stop the program and close everything if Ctrl + c is pressed
