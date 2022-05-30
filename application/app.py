@@ -340,8 +340,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
 
         last_num = num_clusters
 
-        plot.plot(x,y, pen=None, symbol="x",
-            symbolPen=None, symbolBrush=(60, 0, 0))
+       
 
         #centreX.append(groupCentreX)
         #centreY.append(groupCentreY)

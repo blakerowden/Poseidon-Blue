@@ -17,6 +17,8 @@ def scanner(s, x, y, last_clusters, plot, iteration):
     groupCentreY = []
     plot.clear()
 
+    symbols = ['x', '*', 'o']
+
     
 
     if len(x) == len(y):
@@ -29,7 +31,7 @@ def scanner(s, x, y, last_clusters, plot, iteration):
         print("Uneven number of x an y")
     if last_clusters == 0:
         last_clusters = 1
-    db = DBSCAN(eps=0.6, min_samples=int(len(x)/(3 * last_clusters))).fit(points)
+    db = DBSCAN(eps=0.4, min_samples=int(len(x)/(last_clusters))).fit(points)
 
    
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
@@ -63,21 +65,19 @@ def scanner(s, x, y, last_clusters, plot, iteration):
             groupX.clear()
             groupY.clear()
 
-        
+            plot.plot(groupX,groupY, pen=None, symbol="x",
+                symbolPen=None, symbolBrush=(colorInd * 50, colorInd * 3, colorInd * 20))
 
-        
 
     if lastLabel == 0:
+        plot.plot(groupX,groupY, pen=None, symbol="x",
+                symbolPen=None, symbolBrush=(colorInd * 50, colorInd * 3, colorInd * 20))
         groupX.append(x[i])
         groupY.append(y[i])
         centreX, centreY = centre_point(groupX, groupY)
         plot.addItem(pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.1, 0.1))
         groupCentreX.append(centreX)
         groupCentreY.append(centreY)
-        
-
-    for ellipse in ellipseList:
-        plot.addItem(ellipse)
 
     for item in ellipseList:
         print(item)
