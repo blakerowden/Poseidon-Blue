@@ -5,6 +5,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 import datetime
 import math
+from math import floor
 
 
 def velocity_calc(xList, yList):
@@ -12,7 +13,7 @@ def velocity_calc(xList, yList):
     angList = []
     #print(xList, yList)
     if len(xList)%2 == 0:
-        for i in range(int(len(xList)/2)):
+        for i in range(floor(len(xList)/2) - 1):
             velocityX = abs((xList[i*2][0] - xList[i*2+1][0])*5)
             velocityY = abs((yList[i*2][0] - yList[i*2+1][0])*5)
             if velocityX > 4 or velocityY > 4:

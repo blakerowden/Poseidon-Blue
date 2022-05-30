@@ -28,6 +28,7 @@ velList = []
 angList = []
 timeStamps = []
 iteration = 0
+last_num = 1
 
 # Function to configure the serial ports and send the data from
 # the configuration file to the radar
@@ -303,6 +304,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
     global centreY
     global velList
     global angList
+    global last_num
     velSum = [0 for i in range(50)]
     angSum = [0 for i in range(50)]
     x = []
@@ -325,47 +327,48 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
            groupCentreX,
            groupCentreY,
            num_clusters,
-        ) = scanner(window, x, y)
-        #for i in range(len(velSum)):
-        #   velSum[i] = 0
-        #   angSum[i] = 0
-        #if num_clusters > 0:
-        #   iteration += 1
-        #   
-        #centreX.append(groupCentreX)
-        #centreY.append(groupCentreY)
-    
-        #if iteration % 2 == 0 and len(centreX) > 1:
-        #   # print(centreX, centreY)
-    #
-        #   vel, ang = velocity_calc(centreX, centreY)
-        #   velList.append(vel)
-        #   angList.append(ang)
-        #   centreX.clear()
-        #   centreY.clear()
-    #
-        #if iteration % 10 == 0:
-        #   for i in range(len(velList)):
-        #       for j in range(len(velList[i])):
-        #           velSum[j] += velList[i][j]
-        #           angSum[j] += angList[i][j]
-        #   for i in range(num_clusters):
-        #       print(
-        #           "Average velocity of cluster "
-        #           + str(i + 1)
-        #           + " is: "
-        #           + str(velSum[i] / 5)
-        #       )
-        #       print(
-        #           "Average angle of cluster "
-        #           + str(i + 1)
-        #           + " is: "
-        #           + str(angSum[i] / 5)
-        #           + "\n"
-        #       )
-        #   velList.clear()
-        #   angList.clear()
+        ) = scanner(window, x, y, last_num)
+        for i in range(len(velSum)):
+           velSum[i] = 0
+           angSum[i] = 0
+        if num_clusters > 0:
+           iteration += 1
 
+        last_num = num_clusters
+           
+        centreX.append(groupCentreX)
+        centreY.append(groupCentreY)
+
+        if iteration % 2 == 0 and len(centreX) > 1:
+           # print(centreX, centreY)
+    
+           vel, ang = [0],[0] #velocity_calc(centreX, centreY)
+           velList.append(vel)
+           angList.append(ang)
+           centreX.clear()
+           centreY.clear()
+    
+        if iteration % 10 == 0:
+           for i in range(len(velList)):
+               for j in range(len(velList[i])):
+                   velSum[j] += velList[i][j]
+                   angSum[j] += angList[i][j]
+           for i in range(num_clusters):
+               print(
+                   "Average velocity of cluster "
+                   + str(i + 1)
+                   + " is: "
+                   + str(velSum[i] / 5)
+               )
+               print(
+                   "Average angle of cluster "
+                   + str(i + 1)
+                   + " is: "
+                   + str(angSum[i] / 5)
+                   + "\n"
+               )
+           velList.clear()
+           angList.clear()
         for ellipse in ellipseList:
             plot.addItem(ellipse)
 
@@ -421,7 +424,7 @@ def main() -> None:
                 frameData[currentIndex] = detObj
                 currentIndex += 1
 
-            time.sleep(1/7)  # Sampling frequency of 30 Hz
+            time.sleep(0.05)  # Sampling frequency of 30 Hz
             plot.clear()
 
         # Stop the program and close everything if Ctrl + c is pressed

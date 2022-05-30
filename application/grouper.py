@@ -7,7 +7,7 @@ from pyqtgraph.Qt import QtGui
 labels_true = 1
 
 
-def scanner(s, x, y):
+def scanner(s, x, y, last_clusters):
     radius = 0
     centre = [0, 0]
     data = []
@@ -24,7 +24,7 @@ def scanner(s, x, y):
     else:
         print("Uneven number of x an y")
 
-    db = DBSCAN(eps=1, min_samples=int(len(x)/5)).fit(points)
+    db = DBSCAN(eps=1, min_samples=int(len(x)/(last_clusters + 1))).fit(points)
 
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
