@@ -3,6 +3,9 @@ import numpy as np
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_blobs
+from random import randint
 
 labels_true = 1
 
@@ -19,6 +22,12 @@ def scanner(s, x, y, last_clusters, plot, iteration):
 
     symbols = ['x', '*', 'o']
 
+    centers = [[3, 8], [-2, 5], [2, 4.8]]
+
+    X, labels_true = make_blobs(
+        n_samples=20, centers=centers, cluster_std=0.2, random_state=0
+    )
+
     
 
     if len(x) == len(y):
@@ -31,7 +40,7 @@ def scanner(s, x, y, last_clusters, plot, iteration):
         print("Uneven number of x an y")
     if last_clusters == 0:
         last_clusters = 1
-    db = DBSCAN(eps=0.4, min_samples=int(len(x)/(last_clusters))).fit(points)
+    db = DBSCAN(eps=1, min_samples=3).fit(X)
 
    
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
@@ -48,8 +57,6 @@ def scanner(s, x, y, last_clusters, plot, iteration):
     lastLabel = 0
     colorInd = 0
 
-    scatter = pg.ScatterPlotItem(pxMode=False)
-    ellipseList = []
 
     for i in range(len(data)):
         groupX.append(x[i])
@@ -61,27 +68,35 @@ def scanner(s, x, y, last_clusters, plot, iteration):
             centreX, centreY = centre_point(groupX, groupY)
             groupCentreX.append(centreX)
             groupCentreY.append(centreY)
-            plot.addItem(pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.1, 0.1))
             groupX.clear()
             groupY.clear()
 
-            plot.plot(groupX,groupY, pen=None, symbol="x",
-                symbolPen=None, symbolBrush=(colorInd * 50, colorInd * 3, colorInd * 20))
+    unique_labels = set(labels)
+    colors = [(255/(5+i),200/(3+i),255/(1+i)) for i in range(len(unique_labels))]
+    print(colors)
+    for k, col in zip(unique_labels, colors):
+        if k == -1:
+            # Black used for noise.
+            col = (255, 0, 0)
 
+        class_member_mask = labels == k
+
+        xy = X[class_member_mask & core_samples_mask]
+        plot.plot(xy[:,0],xy[:,1], pen=None, symbol="o",
+                symbolPen=None, symbolBrush=tuple(col))
+
+        xy = X[class_member_mask & ~core_samples_mask]
+        plot.plot(xy[:,0],xy[:,1], pen=None, symbol="x",
+                symbolPen=None, symbolBrush=tuple(col))
 
     if lastLabel == 0:
-        plot.plot(groupX,groupY, pen=None, symbol="x",
-                symbolPen=None, symbolBrush=(colorInd * 50, colorInd * 3, colorInd * 20))
         groupX.append(x[i])
         groupY.append(y[i])
         centreX, centreY = centre_point(groupX, groupY)
-        plot.addItem(pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.1, 0.1))
         groupCentreX.append(centreX)
         groupCentreY.append(centreY)
 
-    for item in ellipseList:
-        print(item)
-    
+
     return groupCentreX, groupCentreY, n_clusters_
 
 
