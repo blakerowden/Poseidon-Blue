@@ -3,11 +3,13 @@ import numpy as np
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
+from sklearn.datasets import make_blobs
+from random import randint
 
 labels_true = 1
 
 
-def scanner(s, x, y, last_clusters, plot, iteration):
+def scanner(s, x, y, last_clusters, plot):
     radius = 0
     centre = [0, 0]
     data = []
@@ -17,21 +19,15 @@ def scanner(s, x, y, last_clusters, plot, iteration):
     groupCentreY = []
     plot.clear()
 
-    symbols = ['x', '*', 'o']
-
-    
-
     if len(x) == len(y):
         for i in range(len(x)):
             data.append([x[i], y[i]])
-    
-    for xpoint, ypoint in data:
-        points = np.array(data)
-    else:
-        print("Uneven number of x an y")
+ 
+    points = np.array(data)
+
     if last_clusters == 0:
         last_clusters = 1
-    db = DBSCAN(eps=0.4, min_samples=int(len(x)/(last_clusters))).fit(points)
+    db = DBSCAN(eps=0.5, min_samples= 2).fit(points)
 
    
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
@@ -42,46 +38,55 @@ def scanner(s, x, y, last_clusters, plot, iteration):
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
     n_noise_ = list(labels).count(-1)
 
-    print("Estimated number of clusters: %d" % n_clusters_)
-    print("Estimated number of noise points: %d" % n_noise_)
-
     lastLabel = 0
     colorInd = 0
 
-    scatter = pg.ScatterPlotItem(pxMode=False)
-    ellipseList = []
+    last_k = 0
 
-    for i in range(len(data)):
-        groupX.append(x[i])
-        groupY.append(y[i])
+    unique_labels = set(labels)
+    colors = [(255/(5+i),200/(3+i),255/(1+i)) for i in range(len(unique_labels))]
+    for k, col in zip(unique_labels, colors):
+        if k == -1:
+            # Black used for noise.
+            col = (255, 0, 0)
+        
+        class_member_mask = labels == k
 
-        if labels[i] != lastLabel:
-            colorInd += 1
-            lastLabel = labels[i]
-            centreX, centreY = centre_point(groupX, groupY)
-            groupCentreX.append(centreX)
-            groupCentreY.append(centreY)
-            plot.addItem(pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.1, 0.1))
-            groupX.clear()
-            groupY.clear()
+        xy = points[class_member_mask & core_samples_mask]
+        plot.plot(xy[:,0],xy[:,1], pen=None, symbol="o",
+                symbolPen=None, symbolBrush=tuple(col))
 
-            plot.plot(groupX,groupY, pen=None, symbol="x",
-                symbolPen=None, symbolBrush=(colorInd * 50, colorInd * 3, colorInd * 20))
+        groupX = xy[:,0].tolist()
+        groupY = xy[:,1].tolist()
 
+        xy = points[class_member_mask & ~core_samples_mask]
+        plot.plot(xy[:,0],xy[:,1], pen=None, symbol="x",
+                symbolPen=None, symbolBrush=tuple(col))
+
+        
+
+        if k != last_k:
+            if len(groupX) > 0:
+                centreX, centreY = centre_point(groupX, groupY)
+                groupCentreX.append(centreX)
+                groupCentreY.append(centreY)
+                groupX.clear()
+                groupY.clear()
+
+        
+
+        last_k = k
 
     if lastLabel == 0:
-        plot.plot(groupX,groupY, pen=None, symbol="x",
-                symbolPen=None, symbolBrush=(colorInd * 50, colorInd * 3, colorInd * 20))
         groupX.append(x[i])
         groupY.append(y[i])
         centreX, centreY = centre_point(groupX, groupY)
-        plot.addItem(pg.QtGui.QGraphicsEllipseItem(centreX, centreY, 0.1, 0.1))
         groupCentreX.append(centreX)
         groupCentreY.append(centreY)
 
-    for item in ellipseList:
-        print(item)
-    
+    out = "Estimated Locations:"
+    plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (0,15)))
+
     return groupCentreX, groupCentreY, n_clusters_
 
 
