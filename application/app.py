@@ -5,6 +5,9 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 import os
+import influxdb_client, os, time
+from influxdb_client import InfluxDBClient, Point, WritePrecision
+from influxdb_client.client.write_api import SYNCHRONOUS
 
 from sklearn import cluster
 from grouper import *
@@ -12,6 +15,8 @@ from velocity import *
 
 dirname = os.path.dirname(__file__)
 filename = os.path.join(dirname, "AWR1843config.cfg")
+
+INFLUXDB_TOKEN = "oG8va_7annhvLMe3uSkHTE3pUrxhYO5tGUUUyCOmBqkhX_Lu0ySBA_aDR-pQa2dpkiCBiDk0AX29VgQAHLBlVA=="
 
 # Change the configuration file name
 configFileName = filename
@@ -34,7 +39,6 @@ angList = []
 timeStamps = []
 iteration = 0
 last_num = 1
-
 
 
 class DetectedObject:
@@ -63,6 +67,13 @@ class OnlineDashboard:
     """
 
     def __init__(self):
+        self._token = INFLUXDB_TOKEN
+        self._org = "lianavant@gmail.com"
+        self._url = "https://ap-southeast-2-1.aws.cloud2.influxdata.com"
+        self._bucket = "People"
+        self.client = influxdb_client.InfluxDBClient(
+            url=self._url, token=self._token, org=self._org
+        )
         self.total_nodes = 0
         self.objects = {}
 
@@ -84,7 +95,21 @@ class OnlineDashboard:
         """
         Send the data to the online dashboard
         """
-        pass
+
+        write_api = self.client.write_api(write_options=SYNCHRONOUS)
+
+        for index, person in enumerate(self.objects):
+            point = (
+                Point(f"{index}")
+                .tag("timestamp", "tagvalue1")
+                .tag("totalnodes", f"{self.total_nodes}")
+                .tag("x", f"{person.x}")
+                .tag("y", f"{person.y}")
+                .tag("velocity", f"{person.v}")
+                .tag("angle", f"{person.angle}")
+            )
+            write_api.write(bucket=self._bucket, org=self._org, record=point)
+            # time.sleep(1) # separate points by 1 second
 
 
 # Function to configure the serial ports and send the data from
@@ -352,7 +377,11 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
 # ------------------------------------------------------------------
 
 # Funtion to update the data and display in the plot
-def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem, onlineDash: OnlineDashboard) -> int:
+def update(
+    window: pg.GraphicsLayoutWidget,
+    plot: pg.graphicsItems.PlotItem,
+    onlineDash: OnlineDashboard,
+) -> int:
 
     dataOk = 0
     global detObj
@@ -386,9 +415,9 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem, onl
         if iteration % 5 == 0:
             # Pass Machine Learning DBSCAN from Grouper.py:
             (
-            groupCentreX,
-            groupCentreY,
-            num_clusters,
+                groupCentreX,
+                groupCentreY,
+                num_clusters,
             ) = scanner(window, xPoints, yPoints, last_num, plot)
             velSum.clear()
             angSum.clear()
@@ -397,10 +426,10 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem, onl
             last_num = num_clusters
             centreX.append(groupCentreX)
             centreY.append(groupCentreY)
-        
-#
+
+        #
         if iteration % 30 == 0 and num_clusters > 0:
-           # print(centreX, centreY)
+            # print(centreX, centreY)
             for i in range(num_clusters):
                 velSum.clear()
                 angSum.clear()
@@ -410,41 +439,54 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem, onl
             vel, ang = velocity_calc(centreX, centreY)
             velList.append(vel)
             angList.append(ang)
-            print('Number of people is: ' + str(num_clusters))
+            print("Number of people is: " + str(num_clusters))
             for i in range(len(velList)):
                 for j in range(num_clusters):
-                    velSum[j]=sum(velList[i])
-                    angSum[j]=sum(angList[i])
+                    velSum[j] = sum(velList[i])
+                    angSum[j] = sum(angList[i])
             for i in range(len(velSum)):
                 onlineDash.clear_objects(onlineDash)
-                onlineDash.add_object(onlineDash, centreX[i], centreY[i], velSum[i], angSum[i])
-                print(
-                "Average velocity of cluster "
-                + str(i + 1)
-                + " is: "
-                + str(velSum[i])
+                onlineDash.add_object(
+                    onlineDash, centreX[i], centreY[i], velSum[i], angSum[i]
                 )
                 print(
-                "Average angle of cluster "
-                + str(i + 1)
-                + " is: "
-                + str(angSum[i])
-                + "\n"
+                    "Average velocity of cluster "
+                    + str(i + 1)
+                    + " is: "
+                    + str(velSum[i])
+                )
+                print(
+                    "Average angle of cluster "
+                    + str(i + 1)
+                    + " is: "
+                    + str(angSum[i])
+                    + "\n"
                 )
                 centreX.clear()
                 centreY.clear()
-            
-            
+
             velList.clear()
             angList.clear()
 
         for i in range(num_clusters):
 
-                out = '(' + str(round(groupCentreX[i]*4)/4) + ', ' + str(round(groupCentreY[i]*4)/4) + ')'
-                
-                plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (-1, -i + 14)))
-                plot.plot([1.1],[ -i + 13.15], pen=None, symbol="o",
-                            symbolPen=None, symbolBrush=(255/(i+5),200/(i+3),255/(i+1)))
+            out = (
+                "("
+                + str(round(groupCentreX[i] * 4) / 4)
+                + ", "
+                + str(round(groupCentreY[i] * 4) / 4)
+                + ")"
+            )
+
+            plot.addItem(pg.TextItem(out, (0, 0, 0, 255), anchor=(-1, -i + 14)))
+            plot.plot(
+                [1.1],
+                [-i + 13.15],
+                pen=None,
+                symbol="o",
+                symbolPen=None,
+                symbolBrush=(255 / (i + 5), 200 / (i + 3), 255 / (i + 1)),
+            )
 
         QtGui.QApplication.processEvents()
 
