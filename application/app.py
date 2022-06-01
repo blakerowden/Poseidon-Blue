@@ -1,3 +1,4 @@
+from tkinter import ON
 import serial
 import time
 import numpy as np
@@ -33,6 +34,7 @@ angList = []
 timeStamps = []
 iteration = 0
 last_num = 1
+
 
 
 class DetectedObject:
@@ -350,7 +352,7 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
 # ------------------------------------------------------------------
 
 # Funtion to update the data and display in the plot
-def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> int:
+def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem, onlineDash: OnlineDashboard) -> int:
 
     dataOk = 0
     global detObj
@@ -399,42 +401,38 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
 #
         if iteration % 30 == 0 and num_clusters > 0:
            # print(centreX, centreY)
-           for i in range(num_clusters):
-               velSum.clear()
-               angSum.clear()
-               velSum = [0 for i in range(num_clusters)]
-               angSum = [0 for i in range(num_clusters)]
+            for i in range(num_clusters):
+                velSum.clear()
+                angSum.clear()
+                velSum = [0 for i in range(num_clusters)]
+                angSum = [0 for i in range(num_clusters)]
 
-           vel, ang = velocity_calc(centreX, centreY)
-           velList.append(vel)
-           angList.append(ang)
-           centreX.clear()
-           centreY.clear()
-
-        if iteration % 30 == 0 and num_clusters > 0:
+            vel, ang = velocity_calc(centreX, centreY)
+            velList.append(vel)
+            angList.append(ang)
             print('Number of people is: ' + str(num_clusters))
-            print(angList)
-            cluster_velocities = []
             for i in range(len(velList)):
                 for j in range(num_clusters):
                     velSum[j]=sum(velList[i])
                     angSum[j]=sum(angList[i])
             for i in range(len(velSum)):
-                cluster_velocities.append(velSum[i]/5)
-                cluster_velocities.append(angSum[i]/5)
+                onlineDash.clear_objects(onlineDash)
+                onlineDash.add_object(onlineDash, centreX[i], centreY[i], velSum[i], angSum[i])
                 print(
                 "Average velocity of cluster "
                 + str(i + 1)
                 + " is: "
-                + str(velSum[i] / 5)
+                + str(velSum[i])
                 )
                 print(
                 "Average angle of cluster "
                 + str(i + 1)
                 + " is: "
-                + str(angSum[i] / 5)
+                + str(angSum[i])
                 + "\n"
                 )
+                centreX.clear()
+                centreY.clear()
             
             
             velList.clear()
@@ -490,10 +488,11 @@ def main() -> None:
     detObj = {}
     frameData = {}
     currentIndex = 0
+    onlineDash = OnlineDashboard
     while True:
         try:
             # Update the data and check if the data is okay
-            dataOk = update(window, plot)
+            dataOk = update(window, plot, onlineDash)
 
             if dataOk:
                 # Store the current frame into frameData
