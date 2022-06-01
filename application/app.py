@@ -336,7 +336,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
 
         
 
-        if iteration%10 == 0:
+        if iteration%5 == 0:
             # Pass Machine Learning DBSCAN from Grouper.py:
             (
             groupCentreX,
@@ -409,7 +409,7 @@ def main() -> None:
     QtGui.QApplication([])
 
     # Set the plot
-    pg.setConfigOption("background", "lightgrey")
+    pg.setConfigOption("background", tuple((255,255,255,255)))
     window = pg.GraphicsLayoutWidget(title="Posideon Blue People Tracking")
     plot = window.addPlot()
     plot.setXRange(-5, 5)

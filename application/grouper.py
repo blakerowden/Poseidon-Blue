@@ -48,12 +48,9 @@ def scanner(s, x, y, last_clusters, plot, iteration):
 
 
     for i in range(len(data)):
-        groupX.append(x[i])
-        groupY.append(y[i])
+        
 
         if labels[i] != lastLabel:
-            colorInd += 1
-            lastLabel = labels[i]
             centreX, centreY = centre_point(groupX, groupY)
             groupCentreX.append(centreX)
             groupCentreY.append(centreY)
@@ -67,8 +64,17 @@ def scanner(s, x, y, last_clusters, plot, iteration):
         if k == -1:
             # Black used for noise.
             col = (255, 0, 0)
-
+        
         class_member_mask = labels == k
+
+        groupX.append(x[class_member_mask & core_samples_mask])
+        groupY.append(y[class_member_mask & ~core_samples_mask])
+        if k != last_k:
+            centreX, centreY = centre_point(groupX, groupY)
+            groupCentreX.append(centreX)
+            groupCentreY.append(centreY)
+            groupX.clear()
+            groupY.clear()
 
         xy = points[class_member_mask & core_samples_mask]
         plot.plot(xy[:,0],xy[:,1], pen=None, symbol="o",
@@ -77,6 +83,8 @@ def scanner(s, x, y, last_clusters, plot, iteration):
         xy = points[class_member_mask & ~core_samples_mask]
         plot.plot(xy[:,0],xy[:,1], pen=None, symbol="x",
                 symbolPen=None, symbolBrush=tuple(col))
+
+        last_k = k
 
     if lastLabel == 0:
         groupX.append(x[i])
@@ -88,13 +96,15 @@ def scanner(s, x, y, last_clusters, plot, iteration):
     out = "Estimated Locations:"
     plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (0,15)))
 
-    tupleout = (centreX, centreY)
+    for i in range(n_clusters_):
 
-    out = str(round(centreX)) + ' ' + str(round(centreY))
-    
-    plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (-2.5,14)))
-    plot.plot([1.1],[13.15], pen=None, symbol="o",
-                symbolPen=None, symbolBrush=(255/6,200/4,255/2))
+        print (n_clusters_)
+
+        out = '(' + str(round(groupCentreX[i])) + ', ' + str(round(groupCentreY[i])) + ')'
+        
+        plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (-2.5, -i + 14)))
+        plot.plot([1.1],[ -i + 13.15], pen=None, symbol="o",
+                    symbolPen=None, symbolBrush=(255/(i+5),200/(i+3),255/(i+1)))
 
     return groupCentreX, groupCentreY, n_clusters_
 
