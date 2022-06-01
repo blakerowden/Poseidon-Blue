@@ -12,8 +12,8 @@ def velocity_calc(xList, yList):
     velList = []
     angList = []
     for i in range(floor(len(xList)/2) - 1):
-        velocityX = abs((xList[i*2][0] - xList[i*2+1][0])*6)
-        velocityY = abs((yList[i*2][0] - yList[i*2+1][0])*6)
+        velocityX = abs((xList[i*2][0] - xList[i*2+1][0]))
+        velocityY = abs((yList[i*2][0] - yList[i*2+1][0]))
         if velocityX > 4 or velocityY > 4:
             velocityY = 0
             velocityX = 0
