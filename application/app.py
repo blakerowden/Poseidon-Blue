@@ -4,6 +4,8 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
 import os
+
+from sklearn import cluster
 from grouper import *
 from velocity import *
 
@@ -310,13 +312,11 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
     global velList
     global angList
     global last_num
-    global xPoints
-    global yPoints
-    velSum = [0 for i in range(50)]
-    angSum = [0 for i in range(50)]
+    num_clusters = 0
+    velSum = []
+    angSum = []
     x = []
     y = []
-    ellipseList = []
 
     # Read and parse the received data
     dataOk, frameNumber, detObj = readAndParseData18xx(
@@ -342,53 +342,66 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
             groupCentreX,
             groupCentreY,
             num_clusters,
-            ) = scanner(window, xPoints, yPoints, last_num, plot, iteration)
+            ) = scanner(window, xPoints, yPoints, last_num, plot)
             velSum.clear()
             angSum.clear()
             xPoints.clear()
             yPoints.clear()
             last_num = num_clusters
+            centreX.append(groupCentreX)
+            centreY.append(groupCentreY)
+        
+#
+        if iteration % 30 == 0 and num_clusters > 0:
+           # print(centreX, centreY)
+           for i in range(num_clusters):
+               velSum.clear()
+               angSum.clear()
+               velSum = [0 for i in range(num_clusters)]
+               angSum = [0 for i in range(num_clusters)]
 
-       
+           vel, ang = velocity_calc(centreX, centreY)
+           velList.append(vel)
+           angList.append(ang)
+           centreX.clear()
+           centreY.clear()
 
-        #centreX.append(groupCentreX)
-        #centreY.append(groupCentreY)
-#
-        if iteration % 2 == 0 and len(centreX) > 1:
-            pass
-        #   # print(centreX, centreY)
-#
-        #   vel, ang = [0], [0]  # velocity_calc(centreX, centreY)
-        #   velList.append(vel)
-        #   angList.append(ang)
-        #   centreX.clear()
-        #   centreY.clear()
-#
-        #if iteration % 30 == 0:
-        #    for i in range(len(velList)):
-        #        for j in range(len(velList[i])):
-        #            velSum[j] += velList[i][j]
-        #            angSum[j] += angList[i][j]
-        #    for i in range(num_clusters):
-        #            
-        #            print(
-        #            "Average velocity of cluster "
-        #            + str(i + 1)
-        #            + " is: "
-        #            + str(velSum[i] / 5)
-        #            )
-        #            print(
-        #            "Average angle of cluster "
-        #            + str(i + 1)
-        #            + " is: "
-        #            + str(angSum[i] / 5)
-        #            + "\n"
-        #            )
-        #    
-        #    
-        #    velList.clear()
-        #    angList.clear()
+        if iteration % 30 == 0 and num_clusters > 0:
+            print('Number of people is: ' + str(num_clusters))
+            print(angList)
+            cluster_velocities = []
+            for i in range(len(velList)):
+                for j in range(num_clusters):
+                    velSum[j]=sum(velList[i])
+                    angSum[j]=sum(angList[i])
+            for i in range(len(velSum)):
+                cluster_velocities.append(velSum[i]/5)
+                cluster_velocities.append(angSum[i]/5)
+                print(
+                "Average velocity of cluster "
+                + str(i + 1)
+                + " is: "
+                + str(velSum[i] / 5)
+                )
+                print(
+                "Average angle of cluster "
+                + str(i + 1)
+                + " is: "
+                + str(angSum[i] / 5)
+                + "\n"
+                )
             
+            
+            velList.clear()
+            angList.clear()
+
+        for i in range(num_clusters):
+
+                out = '(' + str(round(groupCentreX[i]*4)/4) + ', ' + str(round(groupCentreY[i]*4)/4) + ')'
+                
+                plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (-1, -i + 14)))
+                plot.plot([1.1],[ -i + 13.15], pen=None, symbol="o",
+                            symbolPen=None, symbolBrush=(255/(i+5),200/(i+3),255/(i+1)))
 
         QtGui.QApplication.processEvents()
 
