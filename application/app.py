@@ -100,9 +100,13 @@ class OnlineDashboard:
         write_api = self.client.write_api(write_options=SYNCHRONOUS)
 
         for index, person in enumerate(self.objects):
-            point = Point(f"{index}").tag("timestamp", "tagvalue1")
-            write_api.write(self._bucket, self._org, point)
-            # time.sleep(1) # separate points by 1 second
+            point = (
+                Point("measurement1").tag("tagname1", "tagvalue1").field("field1", 69)
+            )
+            write_api.write(
+                bucket=self._bucket, org="lianavant@gmail.com", record=point
+            )
+            time.sleep(1)  # separate points by 1 second
 
 
 # Function to configure the serial ports and send the data from
