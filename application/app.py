@@ -75,7 +75,7 @@ class OnlineDashboard:
             url=self._url, token=self._token, org=self._org
         )
         self.total_nodes = 0
-        self.objects = {}
+        self.objects = []
 
     def add_object(self, x, y, v, angle):
         """
@@ -89,7 +89,7 @@ class OnlineDashboard:
         Clear all objects from the dashboard
         """
         self.total_nodes = 0
-        self.objects = {}
+        self.objects = []
 
     def send_data(self):
         """
