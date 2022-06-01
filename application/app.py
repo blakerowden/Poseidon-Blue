@@ -445,10 +445,11 @@ def update(
                     velSum[j] = sum(velList[i])
                     angSum[j] = sum(angList[i])
             for i in range(len(velSum)):
-                onlineDash.clear_objects(onlineDash)
+                onlineDash.clear_objects()
                 onlineDash.add_object(
-                    onlineDash, centreX[i], centreY[i], velSum[i], angSum[i]
+                    centreX[i], centreY[i], velSum[i], angSum[i]
                 )
+                onlineDash.send_data()
                 print(
                     "Average velocity of cluster "
                     + str(i + 1)
@@ -530,7 +531,7 @@ def main() -> None:
     detObj = {}
     frameData = {}
     currentIndex = 0
-    onlineDash = OnlineDashboard
+    onlineDash = OnlineDashboard()
     while True:
         try:
             # Update the data and check if the data is okay
