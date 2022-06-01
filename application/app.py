@@ -9,6 +9,7 @@ import influxdb_client, os, time
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 from influxdb_client import Point
+from dataclasses import dataclass
 
 from sklearn import cluster
 from grouper import *
@@ -42,24 +43,17 @@ iteration = 0
 last_num = 1
 
 
+@dataclass
 class DetectedObject:
     """
     Holds all the information about a detected object
     """
 
-    def __init__(self, x, y, v, angle):
-        self.x = x
-        self.y = y
-        self.v = v
-        self.angle = angle
-        self.timeStamp = time.time()
-
-    def update(self, x, y, v, angle):
-        self.x = x
-        self.y = y
-        self.v = v
-        self.angle = angle
-        self.timeStamp = time.time()
+    uid: int = 0
+    x: float = 0
+    y: float = 0
+    v: float = 0
+    angle: float = 0
 
 
 class OnlineDashboard:
@@ -72,48 +66,61 @@ class OnlineDashboard:
         self._org = "lianavant@gmail.com"
         self._url = "https://ap-southeast-2-1.aws.cloud2.influxdata.com"
         self._bucket = "People"
-        self.client = influxdb_client.InfluxDBClient(
+        self._client = influxdb_client.InfluxDBClient(
             url=self._url, token=self._token, org=self._org
         )
+        self._write_api = self._client.write_api(write_options=SYNCHRONOUS)
         self.total_nodes = 0
         self.objects = []
 
-    def add_object(self, x, y, v, angle):
+    def add_object(self, x: float, y: float, v: float, angle: float) -> None:
         """
         Add an object to the dashboard
         """
         self.total_nodes += 1
-        self.objects.append(DetectedObject(x, y, v, angle))
+        self.objects.append(DetectedObject(self.total_nodes, x, y, v, angle))
 
-    def clear_objects(self):
+    def clear_objects(self) -> None:
         """
         Clear all objects from the dashboard
         """
         self.total_nodes = 0
         self.objects.clear()
 
-    def send_data(self):
+    def send_data(self) -> None:
         """
         Send the data to the online dashboard
         """
 
-        write_api = self.client.write_api(write_options=SYNCHRONOUS)
-
+        # Send data for each identified object
         for index, person in enumerate(self.objects):
-            point = (
-                Point("measurement1").tag("tagname1", "tagvalue1").field("field1", 69)
+            print(f"Sending person {index} to dashboard")
+            self._write_api.write(
+                bucket=self._bucket,
+                record=person,
+                record_measurement_key="uid",
+                record_field_keys=["x", "y", "v", "angle"],
             )
-            write_api.write(
-                bucket=self._bucket, org="lianavant@gmail.com", record=point
-            )
-            time.sleep(1)  # separate points by 1 second
 
-
-# Function to configure the serial ports and send the data from
-# the configuration file to the radar
+        # Senf the total number of people to the dashboard
+        total_occ = influxdb_client.Point("room_occupancy").field(
+            "current_occupancy", self.total_nodes
+        )
+        print(f"Sending occupancy of {total_occ} to dashboard")
+        self._write_api.write(bucket=self._bucket, record=total_occ)
 
 
 def serialConfig(configFileName: str) -> tuple:
+    """
+    Function to configure the serial ports and send the data from
+    the configuration file to the radar
+
+    Args:
+        configFileName (str): Filenae of the configuration file
+
+    Returns:
+        tuple: Tuple containing the CLI and data serial ports
+    """
 
     global CLIport
     global Dataport
@@ -137,10 +144,15 @@ def serialConfig(configFileName: str) -> tuple:
     return CLIport, Dataport
 
 
-# ------------------------------------------------------------------
-
-# Function to parse the data inside the configuration file
 def parseConfigFile(configFileName: str) -> dict:
+    """Function to parse the data inside the configuration file
+
+    Args:
+        configFileName (str): Filename of the configuration file
+
+    Returns:
+        dict: Dictionary containing the configuration parameters
+    """
 
     # Read the configuration file and send it to the board
     config = [line.rstrip("\r\n") for line in open(configFileName)]
@@ -205,10 +217,16 @@ def parseConfigFile(configFileName: str) -> dict:
     return configParameters
 
 
-# ------------------------------------------------------------------
-
-# Funtion to read and parse the incoming data
 def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
+    """Funtion to read and parse the incoming data
+
+    Args:
+        Dataport (int): Serial port to read the data from
+        configParameters (dict): Dictionary containing the conf parameters
+
+    Returns:
+        tuple: Tuple containing the data
+    """
     global byteBuffer, byteBufferLength
 
     # Constants
@@ -371,14 +389,21 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
     return dataOK, frameNumber, detObj
 
 
-# ------------------------------------------------------------------
-
-# Funtion to update the data and display in the plot
 def update(
     window: pg.GraphicsLayoutWidget,
     plot: pg.graphicsItems.PlotItem,
     onlineDash: OnlineDashboard,
 ) -> int:
+    """Funtion to update the data and display in the plot
+
+    Args:
+        window (pg.GraphicsLayoutWidget): The window to display the plot
+        plot (pg.graphicsItems.PlotItem): The plot to display the data
+        onlineDash (OnlineDashboard): The online dashboard to update the data
+
+    Returns:
+        int: eroor code
+    """
 
     dataOk = 0
     global detObj
@@ -489,10 +514,11 @@ def update(
     return dataOk
 
 
-# -------------------------    MAIN   -----------------------------------------
-
-
 def main() -> None:
+    """
+    Main function to run the program
+    """
+
     # Configurate the serial port
     CLIport, Dataport = serialConfig(configFileName)
 
