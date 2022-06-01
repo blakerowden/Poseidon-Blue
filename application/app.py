@@ -8,6 +8,7 @@ import os
 import influxdb_client, os, time
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client import Point
 
 from sklearn import cluster
 from grouper import *
@@ -99,16 +100,8 @@ class OnlineDashboard:
         write_api = self.client.write_api(write_options=SYNCHRONOUS)
 
         for index, person in enumerate(self.objects):
-            point = (
-                Point(f"{index}")
-                .tag("timestamp", "tagvalue1")
-                .tag("totalnodes", f"{self.total_nodes}")
-                .tag("x", f"{person.x}")
-                .tag("y", f"{person.y}")
-                .tag("velocity", f"{person.v}")
-                .tag("angle", f"{person.angle}")
-            )
-            write_api.write(bucket=self._bucket, org=self._org, record=point)
+            point = Point(f"{index}").tag("timestamp", "tagvalue1")
+            write_api.write(self._bucket, self._org, point)
             # time.sleep(1) # separate points by 1 second
 
 
@@ -446,9 +439,7 @@ def update(
                     angSum[j] = sum(angList[i])
             for i in range(len(velSum)):
                 onlineDash.clear_objects()
-                onlineDash.add_object(
-                    centreX[i], centreY[i], velSum[i], angSum[i]
-                )
+                onlineDash.add_object(centreX[i], centreY[i], velSum[i], angSum[i])
                 onlineDash.send_data()
                 print(
                     "Average velocity of cluster "
