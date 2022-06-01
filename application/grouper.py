@@ -3,7 +3,6 @@ import numpy as np
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtGui
-import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 from random import randint
 
@@ -20,16 +19,6 @@ def scanner(s, x, y, last_clusters, plot, iteration):
     groupCentreY = []
     plot.clear()
 
-    symbols = ['x', '*', 'o']
-
-    centers = [[3, 8], [-2, 5], [2, 4.8]]
-
-    X, labels_true = make_blobs(
-        n_samples=20, centers=centers, cluster_std=0.2, random_state=0
-    )
-
-    
-
     if len(x) == len(y):
         for i in range(len(x)):
             data.append([x[i], y[i]])
@@ -40,7 +29,7 @@ def scanner(s, x, y, last_clusters, plot, iteration):
         print("Uneven number of x an y")
     if last_clusters == 0:
         last_clusters = 1
-    db = DBSCAN(eps=1, min_samples=3).fit(X)
+    db = DBSCAN(eps=1, min_samples= 6).fit(points)
 
    
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
@@ -81,11 +70,11 @@ def scanner(s, x, y, last_clusters, plot, iteration):
 
         class_member_mask = labels == k
 
-        xy = X[class_member_mask & core_samples_mask]
+        xy = points[class_member_mask & core_samples_mask]
         plot.plot(xy[:,0],xy[:,1], pen=None, symbol="o",
                 symbolPen=None, symbolBrush=tuple(col))
 
-        xy = X[class_member_mask & ~core_samples_mask]
+        xy = points[class_member_mask & ~core_samples_mask]
         plot.plot(xy[:,0],xy[:,1], pen=None, symbol="x",
                 symbolPen=None, symbolBrush=tuple(col))
 
@@ -96,6 +85,16 @@ def scanner(s, x, y, last_clusters, plot, iteration):
         groupCentreX.append(centreX)
         groupCentreY.append(centreY)
 
+    out = "Estimated Locations:"
+    plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (0,15)))
+
+    tupleout = (centreX, centreY)
+
+    out = str(round(centreX)) + ' ' + str(round(centreY))
+    
+    plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (-2.5,14)))
+    plot.plot([1.1],[13.15], pen=None, symbol="o",
+                symbolPen=None, symbolBrush=(255/6,200/4,255/2))
 
     return groupCentreX, groupCentreY, n_clusters_
 

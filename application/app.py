@@ -24,6 +24,8 @@ configParameters = (
 
 centreX = []
 centreY = []
+xPoints = []
+yPoints = []
 velList = []
 angList = []
 timeStamps = []
@@ -308,6 +310,8 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
     global velList
     global angList
     global last_num
+    global xPoints
+    global yPoints
     velSum = [0 for i in range(50)]
     angSum = [0 for i in range(50)]
     x = []
@@ -323,22 +327,27 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
         x = -detObj["x"]
         y = detObj["y"]
 
+        for i in range(len(x)):
+
+            xPoints.append(x[i])
+            yPoints.append(y[i])
+
+        iteration += 1
+
         
 
-
-        # Pass Machine Learning DBSCAN from Grouper.py:
-        (
-           groupCentreX,
-           groupCentreY,
-           num_clusters,
-        ) = scanner(window, x, y, last_num, plot, iteration)
-        for i in range(len(velSum)):
-           velSum[i] = 0
-           angSum[i] = 0
-        if num_clusters > 0:
-           iteration += 1
-
-        last_num = num_clusters
+        if iteration%10 == 0:
+            # Pass Machine Learning DBSCAN from Grouper.py:
+            (
+            groupCentreX,
+            groupCentreY,
+            num_clusters,
+            ) = scanner(window, xPoints, yPoints, last_num, plot, iteration)
+            velSum.clear()
+            angSum.clear()
+            xPoints.clear()
+            yPoints.clear()
+            last_num = num_clusters
 
        
 
