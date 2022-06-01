@@ -82,14 +82,14 @@ class OnlineDashboard:
         Add an object to the dashboard
         """
         self.total_nodes += 1
-        self.objects[self.total_nodes] = DetectedObject(x, y, v, angle)
+        self.objects.append(DetectedObject(x, y, v, angle))
 
     def clear_objects(self):
         """
         Clear all objects from the dashboard
         """
         self.total_nodes = 0
-        self.objects = []
+        self.objects.clear()
 
     def send_data(self):
         """
