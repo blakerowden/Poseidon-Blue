@@ -596,7 +596,7 @@ def main() -> None:
     currentIndex = 0
     while True:
         count += 1
-        if count % 1000 == 0:
+        if count % 10000 == 0:
             update_occupancy(0)
             onlineDash.send_occupancy()
         try:
