@@ -123,6 +123,7 @@ def update_occupancy(currentCount: int) -> None:
     Args:
         currentCount (int): current occupancy
     """
+    print(f"The current occupant count is {currentCount}")
     global occupantList
     global occupantIndex
 
@@ -474,13 +475,13 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
             xPoints.clear()
             yPoints.clear()
             last_num = num_clusters
-            update_occupancy(last_num)
             centreX.append(groupCentreX)
             centreY.append(groupCentreY)
 
         #
         try:
             if iteration % 15 == 0 and num_clusters > 0:
+                update_occupancy(num_clusters)
                 velSum.clear()
                 angSum.clear()
                 velSum = [0 for i in range(num_clusters)]
