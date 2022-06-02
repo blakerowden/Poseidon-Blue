@@ -41,6 +41,9 @@ timeStamps = []
 iteration = 0
 last_num = 1
 
+occupantList = [0, 0, 0, 0, 0, 0, 0]
+occupantIndex = 0
+
 
 @dataclass
 class DetectedObject:
@@ -86,7 +89,7 @@ class OnlineDashboard:
         self.total_nodes = 0
         self.objects.clear()
 
-    def send_data(self) -> None:
+    def send_objects(self) -> None:
         """
         Send the data to the online dashboard
         """
@@ -101,12 +104,30 @@ class OnlineDashboard:
                 record_field_keys=["x", "y", "v", "angle"],
             )
 
-        # Senf the total number of people to the dashboard
+    def send_occupancy(self) -> None:
+        """
+        Send the occupancy to the online dashboard
+        """
+        estimated_occupancy = max(occupantList)
+
         total_occ = influxdb_client.Point("room_occupancy").field(
-            "current_occupancy", self.total_nodes
+            "current_occupancy", estimated_occupancy
         )
         print(f"Sending occupancy of {self.total_nodes} to dashboard")
         self._write_api.write(bucket=self._bucket, record=total_occ)
+
+
+def update_occupancy(currentCount: int) -> None:
+    """Add occupancy to the occupancy list
+
+    Args:
+        currentCount (int): current occupancy
+    """
+    occupantList[occupantIndex] = currentCount
+    if occupantIndex == 6:
+        occupantIndex = 0
+    else:
+        occupantIndex += 1
 
 
 def serialConfig(configFileName: str) -> tuple:
@@ -450,6 +471,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
             xPoints.clear()
             yPoints.clear()
             last_num = num_clusters
+            update_occupancy(last_num)
             centreX.append(groupCentreX)
             centreY.append(groupCentreY)
 
@@ -488,7 +510,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
                         + " is: "
                         + str(angSum[i] / len(angList[i]))
                     )
-                onlineDash.send_data()
+                onlineDash.send_objects()
                 onlineDash.clear_objects()
                 centreX.clear()
                 centreY.clear()
@@ -521,6 +543,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
             )
 
         QtGui.QApplication.processEvents()
+        onlineDash.send_occupancy()
 
     return dataOk
 
