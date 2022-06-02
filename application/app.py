@@ -91,16 +91,19 @@ class OnlineDashboard:
         """
         Send the data to the online dashboard
         """
-
+        
         # Send data for each identified object
-        for index, person in enumerate(self.objects):
-            print(f"Sending person {index} to dashboard")
-            self._write_api.write(
-                bucket=self._bucket,
-                record=person,
-                record_measurement_key="uid",
-                record_field_keys=["x", "y", "v", "angle"],
-            )
+        try:
+            for index, person in enumerate(self.objects):
+                print(f"Sending person {index} to dashboard")
+                self._write_api.write(
+                    bucket=self._bucket,
+                    record=person,
+                    record_measurement_key="uid",
+                    record_field_keys=["x", "y", "v", "angle"],
+                )
+        except:
+            print("Error sending object data to dashboard")
 
         # Senf the total number of people to the dashboard
         total_occ = influxdb_client.Point("room_occupancy").field(
