@@ -394,11 +394,7 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
     return dataOK, frameNumber, detObj
 
 
-def update(
-    window: pg.GraphicsLayoutWidget,
-    plot: pg.graphicsItems.PlotItem,
-    onlineDash: OnlineDashboard,
-) -> int:
+def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> int:
     """Funtion to update the data and display in the plot
 
     Args:
@@ -419,6 +415,7 @@ def update(
     num_clusters = 0
     x = []
     y = []
+    onlineDash = OnlineDashboard()
 
     # Read and parse the received data
     dataOk, frameNumber, detObj = readAndParseData18xx(Dataport, configParameters)
@@ -453,12 +450,13 @@ def update(
                 vel, ang = velocity_calc(centreX, centreY)
                 print("Number of people is: " + str(num_clusters))
                 for i in range(num_clusters):
-                    onlineDash.add_object(
-                        (round(groupCentreX[i] * 4) / 4),
-                        (round(groupCentreX[i] * 4) / 4),
-                        sum(vel),
-                        sum(ang),
-                    )
+                    if groupCentreX[i] != 0 and groupCentreY[i] != 0:
+                        onlineDash.add_object(
+                            (round(groupCentreX[i] * 4) / 4),
+                            (round(groupCentreX[i] * 4) / 4),
+                            sum(vel),
+                            sum(ang),
+                        )
                     print(
                         "Average velocity of cluster "
                         + str(i + 1)
@@ -542,11 +540,10 @@ def main() -> None:
     detObj = {}
     frameData = {}
     currentIndex = 0
-    onlineDash = OnlineDashboard()
     while True:
         try:
             # Update the data and check if the data is okay
-            dataOk = update(window, plot, onlineDash)
+            dataOk = update(window, plot)
 
             if dataOk:
                 # Store the current frame into frameData
