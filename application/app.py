@@ -576,10 +576,10 @@ def main() -> None:
                 # Store the current frame into frameData
                 frameData[currentIndex] = detObj
                 currentIndex += 1
-                onlineDash.send_data()
-                onlineDash.clear_objects()
+                if currentIndex %30 == 0:
+                    onlineDash.send_data()
+                    onlineDash.clear_objects()
 
-            # time.sleep(1/30)  # Sampling frequency of 30 Hz
 
         # Stop the program and close everything if Ctrl + c is pressed
         except KeyboardInterrupt:
