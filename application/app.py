@@ -476,8 +476,7 @@ def update(
                         velSum[j] = sum(velList[i])
                         angSum[j] = sum(angList[i])
                 for i in range(num_clusters):
-                    print("Publishing: " + str((round(groupCentreX[i] * 4) / 4)) + ' ' +str((round(groupCentreX[i] * 4) / 4)) + ' ' + str(velSum[i]) + ' ' + str(angSum[i]))
-                    onlineDash.add_object((round(groupCentreX[i]) * 4 / 4), (round(groupCentreX[i]) * 4 / 4), velSum[i], angSum[i])
+                    onlineDash.add_object((round(groupCentreX[i] * 4)/ 4), (round(groupCentreX[i] * 4)/ 4), velSum[i], angSum[i])
                     print(
                         "Average velocity of cluster "
                         + str(i + 1)
