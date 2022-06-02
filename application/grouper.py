@@ -8,10 +8,7 @@ from random import randint
 
 labels_true = 1
 
-
 def scanner(s, x, y, last_clusters, plot):
-    radius = 0
-    centre = [0, 0]
     data = []
     groupX = []
     groupY = []
@@ -27,7 +24,7 @@ def scanner(s, x, y, last_clusters, plot):
 
     if last_clusters == 0:
         last_clusters = 1
-    db = DBSCAN(eps=0.5, min_samples=2).fit(points)
+    db = DBSCAN(eps=0.8, min_samples=4).fit(points)
 
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
@@ -35,10 +32,8 @@ def scanner(s, x, y, last_clusters, plot):
 
     # Number of clusters in labels, ignoring noise if present.
     n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-    n_noise_ = list(labels).count(-1)
 
     lastLabel = 0
-    colorInd = 0
 
     last_k = 0
 
