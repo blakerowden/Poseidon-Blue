@@ -465,7 +465,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
 
         iteration += 1
 
-        if iteration % 6 == 0:
+        if iteration % 3 == 0:
             # Pass Machine Learning DBSCAN from Grouper.py:
             (
                 groupCentreX,
