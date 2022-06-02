@@ -340,7 +340,7 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
             except ValueError:
                 print("Error reading TLV header, restarting...")
                 time.sleep(0.1)
-                readAndParseData18xx(Dataport, configParameters)
+                main()
 
             # Read the data depending on the TLV message
             if tlv_type == MMWDEMO_UART_MSG_DETECTED_POINTS:
@@ -350,29 +350,32 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
                 y = np.zeros(numDetectedObj, dtype=np.float32)
                 z = np.zeros(numDetectedObj, dtype=np.float32)
                 velocity = np.zeros(numDetectedObj, dtype=np.float32)
+                try:
+                    for objectNum in range(numDetectedObj):
 
-                for objectNum in range(numDetectedObj):
+                        # Read the data for each object
+                        x[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                        idX += 4
+                        y[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                        idX += 4
+                        z[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
+                        idX += 4
+                        velocity[objectNum] = byteBuffer[idX : idX + 4].view(
+                            dtype=np.float32
+                        )
+                        idX += 4
 
-                    # Read the data for each object
-                    x[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
-                    idX += 4
-                    y[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
-                    idX += 4
-                    z[objectNum] = byteBuffer[idX : idX + 4].view(dtype=np.float32)
-                    idX += 4
-                    velocity[objectNum] = byteBuffer[idX : idX + 4].view(
-                        dtype=np.float32
-                    )
-                    idX += 4
-
-                # Store the data in the detObj dictionary
-                detObj = {
-                    "numObj": numDetectedObj,
-                    "x": x,
-                    "y": y,
-                    "z": z,
-                    "velocity": velocity,
-                }
+                    # Store the data in the detObj dictionary
+                    detObj = {
+                        "numObj": numDetectedObj,
+                        "x": x,
+                        "y": y,
+                        "z": z,
+                        "velocity": velocity,
+                    }
+                except:
+                    dataOK = 0
+                    return dataOK, frameNumber, detObj
                 dataOK = 1
 
         # Remove already processed data
