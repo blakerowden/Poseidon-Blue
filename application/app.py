@@ -454,13 +454,11 @@ def update(
 
         try:
             if iteration % 15 == 0 and num_clusters > 0:
-                # print(centreX, centreY)
                 velSum.clear()
                 angSum.clear()
                 velSum = [0 for i in range(num_clusters)]
                 angSum = [0 for i in range(num_clusters)]
                 vel, ang = velocity_calc(centreX, centreY)
-                print(vel,ang)
                 print("Number of people is: " + str(num_clusters))
                 for j in range(num_clusters):
                     velSum[j] = sum(vel)
