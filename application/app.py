@@ -133,6 +133,8 @@ def update_occupancy(currentCount: int) -> None:
     else:
         occupantIndex += 1
 
+    print(f"Current List is {occupantList}")
+
 
 def serialConfig(configFileName: str) -> tuple:
     """
@@ -482,6 +484,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
         try:
             if iteration % 15 == 0 and num_clusters > 0:
                 update_occupancy(num_clusters)
+                onlineDash.send_occupancy()
                 velSum.clear()
                 angSum.clear()
                 velSum = [0 for i in range(num_clusters)]
@@ -494,6 +497,7 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
                     for j in range(num_clusters):
                         velSum[j] = sum(velList[i]) / len(velList[i])
                         angSum[j] = sum(angList[i]) / len(angList[i])
+
                 for i in range(num_clusters):
                     if groupCentreX != 0 and groupCentreY != 0:
                         onlineDash.add_object(
@@ -547,7 +551,6 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
             )
 
         QtGui.QApplication.processEvents()
-        onlineDash.send_occupancy()
 
     return dataOk
 
