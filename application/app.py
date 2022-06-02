@@ -123,6 +123,9 @@ def update_occupancy(currentCount: int) -> None:
     Args:
         currentCount (int): current occupancy
     """
+    global occupantList
+    global occupantIndex
+
     occupantList[occupantIndex] = currentCount
     if occupantIndex == 6:
         occupantIndex = 0
