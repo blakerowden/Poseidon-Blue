@@ -24,7 +24,7 @@ def scanner(s, x, y, last_clusters, plot):
 
     if last_clusters == 0:
         last_clusters = 1
-    db = DBSCAN(eps=0.5, min_samples=2).fit(points)
+    db = DBSCAN(eps=0.8, min_samples=6).fit(points)
 
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True

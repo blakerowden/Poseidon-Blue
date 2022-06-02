@@ -35,6 +35,8 @@ centreX = []
 centreY = []
 xPoints = []
 yPoints = []
+velList = []
+angList = []
 timeStamps = []
 iteration = 0
 last_num = 1
@@ -415,8 +417,12 @@ def update(
     global iteration
     global centreX
     global centreY
+    global velList
+    global angList
     global last_num
     num_clusters = 0
+    velSum = []
+    angSum = []
     x = []
     y = []
 
@@ -435,49 +441,67 @@ def update(
 
         iteration += 1
 
-        if iteration % 2 == 0:
+        if iteration % 6 == 0:
             # Pass Machine Learning DBSCAN from Grouper.py:
             (
                 groupCentreX,
                 groupCentreY,
                 num_clusters,
             ) = scanner(window, xPoints, yPoints, last_num, plot)
+            velSum.clear()
+            angSum.clear()
             xPoints.clear()
             yPoints.clear()
             last_num = num_clusters
             centreX.append(groupCentreX)
             centreY.append(groupCentreY)
 
+        #
         try:
-            if iteration % 15 == 0 and num_clusters > 0:
+            if iteration % 8 == 0 and num_clusters > 0:
+                # print(centreX, centreY)
+                velSum.clear()
+                angSum.clear()
+                velSum = [0 for i in range(num_clusters)]
+                angSum = [0 for i in range(num_clusters)]
                 vel, ang = velocity_calc(centreX, centreY)
+                velList.append(vel)
+                angList.append(ang)
                 print("Number of people is: " + str(num_clusters))
+                for i in range(len(velList)):
+                    for j in range(num_clusters):
+                        velSum[j] = sum(velList[i])/len(velList[i])
+                        angSum[j] = sum(angList[i])/len(angList[i])
                 for i in range(num_clusters):
                     onlineDash.add_object(
                         (round(groupCentreX[i] * 4) / 4),
                         (round(groupCentreX[i] * 4) / 4),
-                        sum(vel),
-                        sum(ang),
+                        velSum[i],
+                        angSum[i],
                     )
                     print(
                         "Average velocity of cluster "
                         + str(i + 1)
                         + " is: "
-                        + str(sum(vel))
+                        + str(velSum[i]/len(velList[i]))
                     )
                     print(
                         "Average angle of cluster "
                         + str(i + 1)
                         + " is: "
-                        + str(sum(ang))
+                        + str(angSum[i]/len(angList[i]))
                     )
                 onlineDash.send_data()
                 onlineDash.clear_objects()
                 centreX.clear()
                 centreY.clear()
+                velList.clear()
+                angList.clear()
         except:
             centreX.clear()
             centreY.clear()
+            velList.clear()
+            angList.clear()
 
         for i in range(num_clusters):
 
