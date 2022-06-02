@@ -332,10 +332,15 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
             word = [1, 2**8, 2**16, 2**24]
 
             # Check the header of the TLV message
-            tlv_type = np.matmul(byteBuffer[idX : idX + 4], word)
-            idX += 4
-            tlv_length = np.matmul(byteBuffer[idX : idX + 4], word)
-            idX += 4
+            try:
+                tlv_type = np.matmul(byteBuffer[idX : idX + 4], word)
+                idX += 4
+                tlv_length = np.matmul(byteBuffer[idX : idX + 4], word)
+                idX += 4
+            except ValueError:
+                print("Error reading TLV header, restarting...")
+                time.sleep(0.1)
+                readAndParseData18xx(Dataport, configParameters)
 
             # Read the data depending on the TLV message
             if tlv_type == MMWDEMO_UART_MSG_DETECTED_POINTS:
