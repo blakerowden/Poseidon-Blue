@@ -22,14 +22,13 @@ def scanner(s, x, y, last_clusters, plot):
     if len(x) == len(y):
         for i in range(len(x)):
             data.append([x[i], y[i]])
- 
+
     points = np.array(data)
 
     if last_clusters == 0:
         last_clusters = 1
-    db = DBSCAN(eps=0.5, min_samples= 2).fit(points)
+    db = DBSCAN(eps=0.5, min_samples=2).fit(points)
 
-   
     core_samples_mask = np.zeros_like(db.labels_, dtype=bool)
     core_samples_mask[db.core_sample_indices_] = True
     labels = db.labels_
@@ -44,26 +43,25 @@ def scanner(s, x, y, last_clusters, plot):
     last_k = 0
 
     unique_labels = set(labels)
-    colors = [(255/(5+i),200/(3+i),255/(1+i)) for i in range(len(unique_labels))]
+    colors = [(255/(5+i), 200/(3+i), 255/(1+i))
+              for i in range(len(unique_labels))]
     for k, col in zip(unique_labels, colors):
         if k == -1:
             # Black used for noise.
             col = (255, 0, 0)
-        
+
         class_member_mask = labels == k
 
         xy = points[class_member_mask & core_samples_mask]
-        plot.plot(xy[:,0],xy[:,1], pen=None, symbol="o",
-                symbolPen=None, symbolBrush=tuple(col))
+        plot.plot(xy[:, 0], xy[:, 1], pen=None, symbol="o",
+                  symbolPen=None, symbolBrush=tuple(col))
 
-        groupX = xy[:,0].tolist()
-        groupY = xy[:,1].tolist()
+        groupX = xy[:, 0].tolist()
+        groupY = xy[:, 1].tolist()
 
         xy = points[class_member_mask & ~core_samples_mask]
-        plot.plot(xy[:,0],xy[:,1], pen=None, symbol="x",
-                symbolPen=None, symbolBrush=tuple(col))
-
-        
+        plot.plot(xy[:, 0], xy[:, 1], pen=None, symbol="x",
+                  symbolPen=None, symbolBrush=tuple(col))
 
         if k != last_k:
             if len(groupX) > 0:
@@ -72,8 +70,6 @@ def scanner(s, x, y, last_clusters, plot):
                 groupCentreY.append(centreY)
                 groupX.clear()
                 groupY.clear()
-
-        
 
         last_k = k
 
@@ -85,7 +81,7 @@ def scanner(s, x, y, last_clusters, plot):
         groupCentreY.append(centreY)
 
     out = "Estimated Locations:"
-    plot.addItem(pg.TextItem(out, (0,0,0,255), anchor = (0,15)))
+    plot.addItem(pg.TextItem(out, (0, 0, 0, 255), anchor=(0, 15)))
 
     return groupCentreX, groupCentreY, n_clusters_
 

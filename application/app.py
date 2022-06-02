@@ -332,15 +332,15 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
             word = [1, 2**8, 2**16, 2**24]
 
             # Check the header of the TLV message
-            try:
-                tlv_type = np.matmul(byteBuffer[idX : idX + 4], word)
-                idX += 4
-                tlv_length = np.matmul(byteBuffer[idX : idX + 4], word)
-                idX += 4
-            except ValueError:
-                print("Error reading TLV header, restarting...")
-                time.sleep(0.1)
-                main()
+            #try:
+            tlv_type = np.matmul(byteBuffer[idX : idX + 4], word)
+            idX += 4
+            tlv_length = np.matmul(byteBuffer[idX : idX + 4], word)
+            idX += 4
+            #except ValueError:
+            #    print("Error reading TLV header, restarting...")
+            #    time.sleep(0.1)
+            #    main()
 
             # Read the data depending on the TLV message
             if tlv_type == MMWDEMO_UART_MSG_DETECTED_POINTS:
@@ -573,10 +573,10 @@ def main() -> None:
                 # Store the current frame into frameData
                 frameData[currentIndex] = detObj
                 currentIndex += 1
-                onlineDash.send_data()
-                onlineDash.clear_objects()
+                if currentIndex %30 == 0:
+                    onlineDash.send_data()
+                    onlineDash.clear_objects()
 
-            # time.sleep(1/30)  # Sampling frequency of 30 Hz
 
         # Stop the program and close everything if Ctrl + c is pressed
         except KeyboardInterrupt:
