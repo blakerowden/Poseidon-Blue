@@ -475,8 +475,9 @@ def update(
                     for j in range(num_clusters):
                         velSum[j] = sum(velList[i])
                         angSum[j] = sum(angList[i])
-                for i in range(len(velSum)):
-                    onlineDash.add_object((groupCentreX[i] * 4 / 4), (groupCentreX[i] * 4 / 4), velSum[i], angSum[i])
+                for i in range(num_clusters):
+                    print("Publishing: " + str((round(groupCentreX[i] * 4) / 4)) + ' ' +str((round(groupCentreX[i] * 4) / 4)) + ' ' + str(velSum[i]) + ' ' + str(angSum[i]))
+                    onlineDash.add_object((round(groupCentreX[i]) * 4 / 4), (round(groupCentreX[i]) * 4 / 4), velSum[i], angSum[i])
                     print(
                         "Average velocity of cluster "
                         + str(i + 1)
@@ -490,6 +491,8 @@ def update(
                         + str(angSum[i])
                         + "\n"
                     )
+                onlineDash.send_data()
+                onlineDash.clear_objects()
                 centreX.clear()
                 centreY.clear()
                 velList.clear()
@@ -573,9 +576,7 @@ def main() -> None:
                 # Store the current frame into frameData
                 frameData[currentIndex] = detObj
                 currentIndex += 1
-                if currentIndex %30 == 0:
-                    onlineDash.send_data()
-                    onlineDash.clear_objects()
+                    
 
 
         # Stop the program and close everything if Ctrl + c is pressed
