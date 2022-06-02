@@ -455,40 +455,45 @@ def update(
             centreY.append(groupCentreY)
 
         #
-        if iteration % 30 == 0 and num_clusters > 0:
-            # print(centreX, centreY)
-            for i in range(num_clusters):
-                velSum.clear()
-                angSum.clear()
-                velSum = [0 for i in range(num_clusters)]
-                angSum = [0 for i in range(num_clusters)]
+        try:
+            if iteration % 30 == 0 and num_clusters > 0:
+                # print(centreX, centreY)
+                for i in range(num_clusters):
+                    velSum.clear()
+                    angSum.clear()
+                    velSum = [0 for i in range(num_clusters)]
+                    angSum = [0 for i in range(num_clusters)]
 
-            vel, ang = velocity_calc(centreX, centreY)
-            velList.append(vel)
-            angList.append(ang)
-            print("Number of people is: " + str(num_clusters))
-            for i in range(len(velList)):
-                for j in range(num_clusters):
-                    velSum[j] = sum(velList[i])
-                    angSum[j] = sum(angList[i])
-            for i in range(len(velSum)):
-                onlineDash.add_object(centreX[i], centreY[i], velSum[i], angSum[i])
-                print(
-                    "Average velocity of cluster "
-                    + str(i + 1)
-                    + " is: "
-                    + str(velSum[i])
-                )
-                print(
-                    "Average angle of cluster "
-                    + str(i + 1)
-                    + " is: "
-                    + str(angSum[i])
-                    + "\n"
-                )
+                vel, ang = velocity_calc(centreX, centreY)
+                velList.append(vel)
+                angList.append(ang)
+                print("Number of people is: " + str(num_clusters))
+                for i in range(len(velList)):
+                    for j in range(num_clusters):
+                        velSum[j] = sum(velList[i])
+                        angSum[j] = sum(angList[i])
+                for i in range(len(velSum)):
+                    onlineDash.add_object(centreX[i], centreY[i], velSum[i], angSum[i])
+                    print(
+                        "Average velocity of cluster "
+                        + str(i + 1)
+                        + " is: "
+                        + str(velSum[i])
+                    )
+                    print(
+                        "Average angle of cluster "
+                        + str(i + 1)
+                        + " is: "
+                        + str(angSum[i])
+                        + "\n"
+                    )
                 centreX.clear()
                 centreY.clear()
-
+                velList.clear()
+                angList.clear()
+        except:
+            centreX.clear()
+            centreY.clear()
             velList.clear()
             angList.clear()
 
