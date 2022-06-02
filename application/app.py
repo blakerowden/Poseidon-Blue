@@ -480,9 +480,6 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
             centreX.append(groupCentreX)
             centreY.append(groupCentreY)
 
-        if iteration % 15 == 0 and num_clusters == 0:
-            update_occupancy(0)
-            onlineDash.send_occupancy()
         try:
             if iteration % 15 == 0 and num_clusters > 0:
                 update_occupancy(num_clusters)
@@ -563,6 +560,7 @@ def main() -> None:
     """
 
     # Configurate the serial port
+    count = 0
     CLIport, Dataport = serialConfig(configFileName)
 
     # Get the configuration parameters from the configuration file
@@ -592,10 +590,15 @@ def main() -> None:
     window.show()
 
     # Main loop
+    onlineDash = OnlineDashboard()
     detObj = {}
     frameData = {}
     currentIndex = 0
     while True:
+        count += 1
+        if count % 100 == 0:
+            update_occupancy(0)
+            onlineDash.send_occupancy()
         try:
             # Update the data and check if the data is okay
             dataOk = update(window, plot)
