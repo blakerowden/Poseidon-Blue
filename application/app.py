@@ -458,8 +458,7 @@ def update(
 
         #
         try:
-            if iteration % 8 == 0 and num_clusters > 0:
-                # print(centreX, centreY)
+            if iteration % 15 == 0 and num_clusters > 0:
                 velSum.clear()
                 angSum.clear()
                 velSum = [0 for i in range(num_clusters)]
