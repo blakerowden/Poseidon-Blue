@@ -480,7 +480,9 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
             centreX.append(groupCentreX)
             centreY.append(groupCentreY)
 
-        #
+        if iteration % 15 == 0 and num_clusters == 0:
+            update_occupancy(0)
+            onlineDash.send_occupancy()
         try:
             if iteration % 15 == 0 and num_clusters > 0:
                 update_occupancy(num_clusters)
