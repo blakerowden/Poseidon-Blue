@@ -28,9 +28,8 @@ Dataport = {}
 byteBuffer = np.zeros(2**15, dtype="uint8")
 byteBufferLength = 0
 
-configParameters = (
-    {}
-)  # Initialize an empty dictionary to store the configuration parameters
+# Initialize an empty dictionary to store the configuration parameters
+configParameters = {}
 
 centreX = []
 centreY = []
@@ -106,7 +105,7 @@ class OnlineDashboard:
         total_occ = influxdb_client.Point("room_occupancy").field(
             "current_occupancy", self.total_nodes
         )
-        print(f"Sending occupancy of {total_occ} to dashboard")
+        print(f"Sending occupancy of {self.total_nodes} to dashboard")
         self._write_api.write(bucket=self._bucket, record=total_occ)
 
 
@@ -332,12 +331,12 @@ def readAndParseData18xx(Dataport: int, configParameters: dict) -> tuple:
             word = [1, 2**8, 2**16, 2**24]
 
             # Check the header of the TLV message
-            #try:
+            # try:
             tlv_type = np.matmul(byteBuffer[idX : idX + 4], word)
             idX += 4
             tlv_length = np.matmul(byteBuffer[idX : idX + 4], word)
             idX += 4
-            #except ValueError:
+            # except ValueError:
             #    print("Error reading TLV header, restarting...")
             #    time.sleep(0.1)
             #    main()
@@ -573,10 +572,9 @@ def main() -> None:
                 # Store the current frame into frameData
                 frameData[currentIndex] = detObj
                 currentIndex += 1
-                if currentIndex %30 == 0:
+                if currentIndex % 30 == 0:
                     onlineDash.send_data()
                     onlineDash.clear_objects()
-
 
         # Stop the program and close everything if Ctrl + c is pressed
         except KeyboardInterrupt:
