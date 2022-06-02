@@ -417,8 +417,6 @@ def update(
     global centreY
     global last_num
     num_clusters = 0
-    velSum = []
-    angSum = []
     x = []
     y = []
 
@@ -437,15 +435,13 @@ def update(
 
         iteration += 1
 
-        if iteration % 6 == 0:
+        if iteration % 3 == 0:
             # Pass Machine Learning DBSCAN from Grouper.py:
             (
                 groupCentreX,
                 groupCentreY,
                 num_clusters,
             ) = scanner(window, xPoints, yPoints, last_num, plot)
-            velSum.clear()
-            angSum.clear()
             xPoints.clear()
             yPoints.clear()
             last_num = num_clusters
@@ -454,40 +450,31 @@ def update(
 
         try:
             if iteration % 15 == 0 and num_clusters > 0:
-                velSum.clear()
-                angSum.clear()
-                velSum = [0 for i in range(num_clusters)]
-                angSum = [0 for i in range(num_clusters)]
                 vel, ang = velocity_calc(centreX, centreY)
                 print("Number of people is: " + str(num_clusters))
-                for j in range(num_clusters):
-                    velSum[j] = sum(vel)
-                    angSum[j] = sum(ang)
                 for i in range(num_clusters):
                     onlineDash.add_object(
                         (round(groupCentreX[i] * 4) / 4),
                         (round(groupCentreX[i] * 4) / 4),
-                        velSum[i],
-                        angSum[i],
+                        sum(vel),
+                        sum(ang),
                     )
                     print(
                         "Average velocity of cluster "
                         + str(i + 1)
                         + " is: "
-                        + str(velSum[i])
+                        + str(sum(vel))
                     )
                     print(
                         "Average angle of cluster "
                         + str(i + 1)
                         + " is: "
-                        + str(angSum[i])
+                        + str(sum(ang))
                     )
                 onlineDash.send_data()
                 onlineDash.clear_objects()
                 centreX.clear()
                 centreY.clear()
-                velList.clear()
-                angList.clear()
         except:
             centreX.clear()
             centreY.clear()
