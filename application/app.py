@@ -467,9 +467,7 @@ def update(
                     velSum[j] = sum(velList[i])
                     angSum[j] = sum(angList[i])
             for i in range(len(velSum)):
-                onlineDash.clear_objects()
                 onlineDash.add_object(centreX[i], centreY[i], velSum[i], angSum[i])
-                onlineDash.send_data()
                 print(
                     "Average velocity of cluster "
                     + str(i + 1)
@@ -562,6 +560,8 @@ def main() -> None:
                 # Store the current frame into frameData
                 frameData[currentIndex] = detObj
                 currentIndex += 1
+                onlineDash.send_data()
+                onlineDash.clear_objects()
 
             # time.sleep(1/30)  # Sampling frequency of 30 Hz
 
