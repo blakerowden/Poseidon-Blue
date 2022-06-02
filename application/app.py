@@ -435,7 +435,7 @@ def update(
 
         iteration += 1
 
-        if iteration % 1 == 0:
+        if iteration % 3 == 0:
             # Pass Machine Learning DBSCAN from Grouper.py:
             (
                 groupCentreX,
