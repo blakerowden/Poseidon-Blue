@@ -442,7 +442,7 @@ def update(
 
         iteration += 1
 
-        if iteration % 5 == 0:
+        if iteration % 3 == 0:
             # Pass Machine Learning DBSCAN from Grouper.py:
             (
                 groupCentreX,
@@ -461,12 +461,10 @@ def update(
         try:
             if iteration % 15 == 0 and num_clusters > 0:
                 # print(centreX, centreY)
-                for i in range(num_clusters):
-                    velSum.clear()
-                    angSum.clear()
-                    velSum = [0 for i in range(num_clusters)]
-                    angSum = [0 for i in range(num_clusters)]
-
+                velSum.clear()
+                angSum.clear()
+                velSum = [0 for i in range(num_clusters)]
+                angSum = [0 for i in range(num_clusters)]
                 vel, ang = velocity_calc(centreX, centreY)
                 velList.append(vel)
                 angList.append(ang)
@@ -488,7 +486,6 @@ def update(
                         + str(i + 1)
                         + " is: "
                         + str(angSum[i])
-                        + "\n"
                     )
                 onlineDash.send_data()
                 onlineDash.clear_objects()
