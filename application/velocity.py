@@ -21,7 +21,7 @@ def velocity_calc(xList, yList):
         angList.append(math.atan2(velocityX, velocityY)*180/math.pi)
     return velList, angList
 
-def predict(self):
+def kalman_predict(self):
         """Calculate the predicted state and covariance"""
         self._x = self.A @ self._x  # Predicted (a priori) state estimate
         self._P = (

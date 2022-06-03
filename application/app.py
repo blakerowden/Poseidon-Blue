@@ -96,13 +96,16 @@ class OnlineDashboard:
 
         # Send data for each identified object
         for index, person in enumerate(self.objects):
-            print(f"Sending person {index} to dashboard")
-            self._write_api.write(
-                bucket=self._bucket,
-                record=person,
-                record_measurement_key="uid",
-                record_field_keys=["x", "y", "v", "angle"],
-            )
+            try:
+                print(f"Sending person {index} to dashboard")
+                self._write_api.write(
+                    bucket=self._bucket,
+                    record=person,
+                    record_measurement_key="uid",
+                    record_field_keys=["x", "y", "v", "angle"],
+                )
+            except:
+                pass
 
     def send_occupancy(self) -> None:
         """
@@ -114,7 +117,10 @@ class OnlineDashboard:
             "current_occupancy", estimated_occupancy
         )
         print(f"Sending occupancy of {max(occupantList)} to dashboard")
-        self._write_api.write(bucket=self._bucket, record=total_occ)
+        try:
+            self._write_api.write(bucket=self._bucket, record=total_occ)
+        except:
+            pass
 
 
 def update_occupancy(currentCount: int) -> None:
