@@ -113,7 +113,7 @@ class OnlineDashboard:
         total_occ = influxdb_client.Point("room_occupancy").field(
             "current_occupancy", estimated_occupancy
         )
-        print(f"Sending occupancy of {self.total_nodes} to dashboard")
+        print(f"Sending occupancy of {max(occupantList)} to dashboard")
         self._write_api.write(bucket=self._bucket, record=total_occ)
 
 
@@ -164,7 +164,6 @@ def serialConfig(configFileName: str) -> tuple:
     config = [line.rstrip("\r\n") for line in open(configFileName)]
     for i in config:
         CLIport.write((i + "\n").encode())
-        print(i)
         time.sleep(0.01)
 
     return CLIport, Dataport
@@ -496,8 +495,6 @@ def update(window: pg.GraphicsLayoutWidget, plot: pg.graphicsItems.PlotItem) -> 
                     for j in range(num_clusters):
                         velSum[j] = sum(velList[i]) / len(velList[i])
                         angSum[j] = sum(angList[i]) / len(angList[i])
-                
-
                 for i in range(num_clusters):
                     if groupCentreX != 0 and groupCentreY != 0:
                         onlineDash.add_object(
