@@ -20,3 +20,34 @@ def velocity_calc(xList, yList):
         velList.append(math.sqrt(velocityX*velocityX+velocityY*velocityX))
         angList.append(math.atan2(velocityX, velocityY)*180/math.pi)
     return velList, angList
+
+def predict(self):
+        """Calculate the predicted state and covariance"""
+        self._x = self.A @ self._x  # Predicted (a priori) state estimate
+        self._P = (
+            self.A @ self._P @ self.A.transpose() + self.Q
+        )  # Predicted (a priori) estimate covariance
+
+def update(self, observation: np.array) -> None:
+    """Update the state estimate based on the observation.
+    Args:
+        observation (np.array): The observation vector.
+    """
+    self.innovation_covariance = (
+        self.H @ self._P @ self.H.transpose() + self.R
+    )  # Innovation (or pre-fit residual) covariance
+    self.observation_noise = (
+        observation - self.H @ self._x
+    )  # Innovation or measurement pre-fit residual
+    self.kalman_gain = (
+        self._P @ self.H.transpose() @ np.linalg.inv(self.innovation_covariance)
+    )  # Optimal Kalman gain
+    self._x = (
+        self._x + self.kalman_gain @ self.observation_noise
+    )  # Updated (a posteriori) state estimate
+    self._P = (
+        self._P
+        - self.kalman_gain
+        @ self.innovation_covariance
+        @ self.kalman_gain.transpose()
+    )  # Updated (a posteriori) estimate covariance
